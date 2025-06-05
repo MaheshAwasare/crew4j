@@ -140,13 +140,7 @@ public class SequentialProcessTest {
         finalResult = finalResult.replaceAll("\\s*\\(Task ID: [^)]+\\)", "").trim();
         String expectedResearcherOutput = "Researcher found: " + taskDesc;
 
-        // Writer Agent's output should be treated as input to PdfWriterTool
-
-
-        // Create a new PdfWriterTool instance with the required parameters
-
-
-
+      
         assertEquals(TaskStatus.COMPLETED, initialTask.getStatus());
         assertNotNull(callbackResult);
         assertEquals(TaskStatus.COMPLETED, callbackResult.status());
@@ -154,24 +148,14 @@ public class SequentialProcessTest {
         callbackOutput = callbackOutput.replaceAll("\\s*\\(Task ID: [^)]+\\)", "").trim();
         assertNotNull(callbackOutput);
         String writerOutput = callbackOutput;
-       /* System.out.println("PDF CONTENT-->"+writerOutput);
-        String filePath = "output1.pdf";
-        PdfWriterTool pdfWriterTool = new PdfWriterTool();
-        Map<String, Object> params = Map.of("text", writerOutput, "filePath", filePath);
-        String pdfResult = pdfWriterTool.use(params).get(); // Call the use method to generate the PDF
 
-        String expectedFinalOutput = "PDF saved to " + filePath;
-        assertEquals(expectedFinalOutput, pdfResult);*/
         List<String> logMessages = context.getLogHistory().stream().map(AgentContext.LogEntry::message).collect(Collectors.toList());
         assertTrue(logMessages.stream().anyMatch(msg -> msg.contains("Agent Researcher starting task: " + taskDesc)));
 
         assertTrue(logMessages.stream().anyMatch(msg -> msg.contains("Agent Writer starting task: " + writerOutput)));
 
 
-        // Verify the generated PDF file
-        /*File pdfFile = new File(filePath);
-        assertTrue(pdfFile.exists());
-        assertTrue(pdfFile.length() >0);*/
+
 
         // Memory Assertions
         // Researcher should have stored its final output as a task summary.

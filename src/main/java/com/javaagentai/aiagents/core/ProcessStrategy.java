@@ -1,5 +1,8 @@
 package com.javaagentai.aiagents.core;
 
+/**
+ * ProcessStrategy
+ */
 public enum ProcessStrategy {
     SEQUENTIAL,
     HIERARCHICAL

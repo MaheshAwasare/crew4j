@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Agent context that holds context information for Agent during execution
+ */
 public class AgentContext {
 
     // Inner record for structured log entries

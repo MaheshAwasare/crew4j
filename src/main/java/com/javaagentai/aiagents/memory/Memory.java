@@ -24,13 +24,12 @@ public interface Memory {
      */
     Object get(String key);
 
+
     /**
-     * Retrieves all items from memory.
-     * @return A list of all values stored in memory.
-     *         Consider returning List<Map.Entry<String, Object>> or a custom MemoryEntry class
-     *         if key-value pairs are needed. For now, List<Object> for simplicity.
+     * Returns objects
+     * @return
      */
-    List<Object> getAll(); // Or List<Map.Entry<String, Object>>
+    List<Object> getAll();
 
     /**
      * Searches memory for items relevant to a query.
