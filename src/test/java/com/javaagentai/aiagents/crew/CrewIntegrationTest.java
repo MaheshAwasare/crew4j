@@ -74,44 +74,5 @@ public class CrewIntegrationTest {
         System.out.println("Researcher and Writer output: " + finalResult);
     }
 
-    /*@Test
-    public void testCrewExecutionHierarchical() throws InterruptedException, ExecutionException {
-        // Create a task
-        Map<String, Object> input = new HashMap<>();
-        input.put("topic", "Future of AI");
-        Task task = new Task("Write a comprehensive article on the future of AI", input, "A comprehensive article on AI future");
-
-        // Create a crew
-        crew = new Crew(agents, ProcessStrategy.HIERARCHICAL);
-
-        // Execute the task
-        CompletableFuture<String> result = crew.execute(task);
-
-        // Verify the result
-        String finalResult = result.get();
-        assertNotNull(finalResult);
-        System.out.println("Researcher and Writer hierarchical output: " + finalResult);
-    }
-
-    @Test
-    public void testCrewExecutionWithHumanInput() throws InterruptedException, ExecutionException {
-        // Create a task that requires human input
-        Map<String, Object> input = new HashMap<>();
-        input.put("topic", "Explain AI to a 10-year-old");
-        Task task = new Task("Explain AI to a 10-year-old", input, "A simple explanation of AI", true);
-
-        // Create a crew
-        crew = new Crew(agents, strategy);
-
-        // Execute the task
-        CompletableFuture<String> result = crew.execute(task);
-
-        // Simulate human input
-        task.setHumanInput("AI is like a smart computer that can learn and help us");
-
-        // Verify the result
-        String finalResult = result.get();
-        assertNotNull(finalResult);
-        System.out.println("Researcher and Writer output with human input: " + finalResult);
-    }*/
+   
 }

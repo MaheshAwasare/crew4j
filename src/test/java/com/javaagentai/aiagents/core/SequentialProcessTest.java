@@ -82,6 +82,9 @@ public class SequentialProcessTest {
         echoTool = new ExampleEchoTool();
         List<Tool> researcherTools = Collections.singletonList(echoTool);
         List<Tool> writerTools = List.of(new PdfWriterTool());
+        Agent researchAgent = BasicAgent.builder()
+                .role("Research Assistant")
+                .build();
 
         researcherMemory = new ShortTermMemory(10);
         researcherMemory.add("previous_finding:AI in Healthcare", "AI can predict patient deterioration.");// Initialize memory
@@ -140,7 +143,7 @@ public class SequentialProcessTest {
         finalResult = finalResult.replaceAll("\\s*\\(Task ID: [^)]+\\)", "").trim();
         String expectedResearcherOutput = "Researcher found: " + taskDesc;
 
-      
+
         assertEquals(TaskStatus.COMPLETED, initialTask.getStatus());
         assertNotNull(callbackResult);
         assertEquals(TaskStatus.COMPLETED, callbackResult.status());

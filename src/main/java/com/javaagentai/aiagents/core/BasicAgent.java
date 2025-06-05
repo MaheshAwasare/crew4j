@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javaagentai.aiagents.llm.LLMClient;
 import com.javaagentai.aiagents.memory.Memory;
 import com.javaagentai.aiagents.tools.Tool;
+import lombok.Builder;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
+@Builder
 public class BasicAgent implements Agent {
 
     private final String name;
