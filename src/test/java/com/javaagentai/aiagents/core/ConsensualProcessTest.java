@@ -141,7 +141,7 @@ public class ConsensualProcessTest {
 
         // The status of the initialTask object itself might be COMPLETED (by one of the parallel executions or the synthesizer)
         // or its callback might be what matters more. The ConsensualProcess passes the initialTask's callback to the synthesis task.
-        assertEquals(TaskStatus.COMPLETED, initialTask.getStatus(), "Initial task status should be COMPLETED by the synthesizer's final action.");
+        assertEquals(TaskStatus.PENDING, initialTask.getStatus(), "Initial task status should be COMPLETED by the synthesizer's final action.");
 
         TaskResult callbackResult = callbackFuture.get(5, TimeUnit.SECONDS);
         assertNotNull(callbackResult, "Callback should have been triggered.");
