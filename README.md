@@ -64,8 +64,8 @@ To include this framework in your project, add the following Maven dependency (u
 
 ```xml
 <dependency>
-    <groupId>com.javaagentai</groupId>
-    <artifactId>ai-agents-framework</artifactId>
+    <groupId>com.crew4j</groupId>
+    <artifactId>jcrew</artifactId>
     <version>0.1.0-SNAPSHOT</version> <!-- Or the latest version -->
 </dependency>
 ```
