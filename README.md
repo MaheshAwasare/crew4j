@@ -126,8 +126,8 @@ import com.javaagentai.aiagents.core.process.SequentialProcess;
 
 // Create a crew with a sequential process
 Crew researchCrew = Crew.builder()
-    .addAgent(researcher)
-    .addAgent(writer)
+    .agents(List.of(researcher,writer))
+    
     .withProcess(new SequentialProcess())
     .build();
 
