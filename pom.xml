@@ -8,7 +8,7 @@
 	<url>https://www.crew4j.com</url>
 	<groupId>com.crew4j</groupId>
 	<artifactId>jcrew</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
