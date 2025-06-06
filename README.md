@@ -1,82 +1,87 @@
-# Crw4J Java based AI Agent Orchestration Framework
+# Crew4J - Java-based AI Agent Orchestration Framework
 
 ## 1. Introduction/Overview
 
-The Crw4J Java based AI Agent Orchestration Framework is a powerful and flexible library designed for building and managing multi-agent AI systems in Java. Inspired by the capabilities of frameworks like CrewAI, this project provides a robust platform for orchestrating collaborative AI agents that can perform complex tasks. It enables developers to define agents with specific roles, tools, and memory, assign them tasks, and manage their execution through various process strategies. The framework is built with asynchronous operations at its core, ensuring efficient and non-blocking execution.
+Crew4J is a powerful and flexible Java-based framework designed for building and managing collaborative multi-agent AI systems. Inspired by frameworks like CrewAI, this project provides a robust platform for orchestrating AI agents that can perform complex tasks through collaboration. It enables developers to define agents with specific roles, tools, and memory, assign them tasks, and manage their execution through various process strategies. The framework is built with asynchronous operations at its core, ensuring efficient and non-blocking execution.
 
 ## 2. Features
 
-*   **Agent Creation:** Define specialized agents with unique roles, assignable tools, and dedicated memory.
-*   **Task Definition:** Create detailed tasks with descriptions, inputs, expected outputs, and completion callbacks.
-*   **Tool Integration:** Equip agents with tools that they can leverage to perform actions or gather information.
-*   **Crew Orchestration:** Form crews of agents to collaborate on tasks.
-*   **Process Strategies:**
-    *   **Sequential:** Agents execute tasks one after another, passing output to the next.
-    *   **Hierarchical:** A manager agent breaks down tasks and delegates sub-tasks to worker agents, then synthesizes the final result.
-    *   **Consensual:** Multiple agents perform the same task, and their outputs are synthesized by a designated agent to form a consensus.
-*   **Memory Management:** Agents are equipped with short-term memory to retain information across interactions.
-*   **Human-in-the-Loop (HITL):** Tasks can be configured to require human input, allowing for manual review and intervention before an agent proceeds.
-*   **Asynchronous Operations:** Utilizes `CompletableFuture` for non-blocking task execution and agent interactions, enabling efficient resource utilization.
+- **Agent Creation:** Define specialized agents with unique roles, assignable tools, and dedicated memory systems
+- **Task Definition:** Create detailed tasks with descriptions, inputs, expected outputs, and completion callbacks
+- **Tool Integration:** Equip agents with tools for web search, code execution, data analysis, and custom capabilities
+- **Crew Orchestration:** Form crews of agents to collaborate on complex tasks
+- **Process Strategies:**
+  - **Sequential:** Agents execute tasks one after another in a defined sequence
+  - **Hierarchical:** A manager agent delegates sub-tasks to worker agents and synthesizes results
+  - **Consensual:** Multiple agents perform the same task independently, with outputs synthesized for consensus
+- **Memory Management:** Short-term memory for contextual awareness, with long-term memory planned
+- **Human-in-the-Loop (HITL):** Tasks can require human input for critical decision points
+- **Asynchronous Operations:** Non-blocking execution using `CompletableFuture` for optimal performance
 
 ## 3. Core Concepts
 
-*   **`Agent` (`com.javaagentai.aiagents.core.Agent`)**:
-    *   An interface defining the contract for an autonomous entity capable of performing tasks.
-    *   **`BasicAgent`**: The primary implementation, allowing configuration of name, role, tools, an LLM client, and memory. It can perform tasks by interacting with an LLM and using its assigned tools.
+### Agent (`com.javaagentai.aiagents.core.Agent`)
+An interface defining autonomous entities capable of performing tasks. The `BasicAgent` implementation provides:
+- Customizable roles and descriptions
+- Integration with language model clients
+- Tool usage capabilities
+- Memory systems for information storage
 
-*   **`Task` (`com.javaagentai.aiagents.core.Task`)**:
-    *   Represents a piece of work to be done. It includes a description, input parameters, expected output, an optional callback for completion/failure, a unique ID, and status.
-    *   Tasks can be marked as requiring human input, pausing execution until the input is provided.
-    *   Lifecycle statuses include `PENDING`, `IN_PROGRESS`, `AWAITING_HUMAN_INPUT`, `COMPLETED`, and `FAILED`.
+### Task (`com.javaagentai.aiagents.core.Task`)
+Represents work to be executed, including:
+- Description and input parameters
+- Expected output specifications
+- Optional human-in-the-loop callbacks
+- Status tracking (`PENDING`, `IN_PROGRESS`, `AWAITING_HUMAN_INPUT`, `COMPLETED`, `FAILED`)
 
-*   **`Tool` (`com.javaagentai.aiagents.tools.Tool`)**:
-    *   An interface for capabilities that an agent can use (e.g., web search, code execution, database query).
-    *   Agents, particularly `BasicAgent`, are designed to understand when and how to use their tools based on LLM interactions. The `use` method returns a `CompletableFuture<String>`.
+### Tool (`com.javaagentai.aiagents.tools.Tool`)
+Capabilities that extend agent functionality beyond language generation:
+- Web search and information retrieval
+- Code execution capabilities
+- Data analysis and processing
+- Custom tool development framework
 
-*   **`Memory` (`com.javaagentai.aiagents.memory.Memory`)**:
-    *   An interface defining how agents store and retrieve information.
-    *   **`ShortTermMemory`**: An in-memory implementation allowing agents to remember recent interactions, task details, or tool outputs. It supports adding, getting, and searching for data.
-    *   `LongTermMemory` is planned for more persistent storage.
+### Memory (`com.javaagentai.aiagents.memory.Memory`)
+Information storage and retrieval system:
+- **ShortTermMemory:** Session-based storage for current execution context
+- **LongTermMemory:** Planned for persistent storage across sessions
 
-*   **`AgentContext` (`com.javaagentai.aiagents.core.AgentContext`)**:
-    *   Provides a shared environment for agents within a process. It includes:
-        *   **Shared Data:** A map for agents to share information.
-        *   **Task-Scoped Data:** Storage specific to a task ID.
-        *   **Logging:** A mechanism to log messages with timestamps, providing a history of operations.
+### AgentContext (`com.javaagentai.aiagents.core.AgentContext`)
+Shared environment providing:
+- Common resources and shared data
+- Task-scoped data storage
+- Logging facilities for coordination
 
-*   **`Crew` (`com.javaagentai.aiagents.core.Crew`)**:
-    *   Represents a group of agents assembled to accomplish a larger objective.
-    *   It is configured with a list of agents and a `ProcessStrategy`.
-    *   The `execute(Task initialTask)` method initiates the work, delegating to the chosen `Process`.
+### Crew (`com.javaagentai.aiagents.core.Crew`)
+Groups of agents working together with defined process strategies for task coordination and result synthesis.
 
-*   **`Process` (`com.javaagentai.aiagents.core.Process`)**:
-    *   An interface defining the orchestration logic for how a `Crew` executes tasks.
-    *   Implementations include:
-        *   **`SequentialProcess`**: Tasks are executed by agents in the order they are provided in the crew. The output of one agent can become the input for the next.
-        *   **`HierarchicalProcess`**: The first agent in the crew acts as a manager, breaking down the initial task into sub-tasks and assigning them to other "worker" agents. The manager then synthesizes the results.
-        *   **`ConsensualProcess`**: All agents in the crew (including the last one) perform the initial task in parallel. The last agent then acts as a synthesizer, taking all individual outputs to produce a final, consolidated answer.
+### Process (`com.javaagentai.aiagents.core.Process`)
+Orchestration logic determining how agents collaborate:
+- **SequentialProcess:** Linear workflow with clear dependencies
+- **HierarchicalProcess:** Manager-worker delegation pattern
+- **ConsensualProcess:** Parallel execution with consensus building
 
-## 4. Getting Started / Usage
+## 4. Getting Started
 
 ### Maven Dependency
 
-To include this framework in your project, add the following Maven dependency (update with actual group ID, artifact ID, and version):
+Add the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
     <groupId>com.crew4j</groupId>
     <artifactId>jcrew</artifactId>
-    <version>0.1.0-SNAPSHOT</version> <!-- Or the latest version -->
+    <version>1.0.0</version>
 </dependency>
 ```
 
-You will also need to include dependencies for your chosen LLM client (e.g., Vertex AI, OpenAI) and Jackson for JSON processing if using features like `BasicAgent`'s tool calling or `HierarchicalProcess`.
+Include Jackson for JSON processing:
 
 ```xml
 <dependency>
     <groupId>com.fasterxml.jackson.core</groupId>
     <artifactId>jackson-databind</artifactId>
-    <version>2.15.0</version> <!-- Use a recent version -->
+    <version>2.15.2</version>
 </dependency>
 ```
 
@@ -85,204 +90,406 @@ You will also need to include dependencies for your chosen LLM client (e.g., Ver
 ```java
 import com.javaagentai.aiagents.core.Agent;
 import com.javaagentai.aiagents.core.BasicAgent;
-import com.javaagentai.aiagents.llm.LLMClient; // Your LLM client implementation
-import com.javaagentai.aiagents.memory.Memory;
-import com.javaagentai.aiagents.memory.ShortTermMemory;
-import com.javaagentai.aiagents.tools.Tool; // Your tool implementation
-// Assuming ExampleEchoTool and a MockLLMClient for simplicity
-import com.javaagentai.aiagents.tools.ExampleEchoTool; 
-// import com.javaagentai.aiagents.llm.MockLLMClient; // If you have a mock
+import com.javaagentai.aiagents.llm.LLMClient;
 
-import java.util.List;
-import java.util.Map;
+// Create a mock LLM client for this example
+LLMClient llmClient = prompt -> {
+    // In a real scenario, this would call an actual LLM API
+    return "This is a response from the language model for prompt: " + prompt;
+};
 
-// LLMClient client = new YourLLMClientImplementation(...);
-// For example purposes, let's assume a simple mock or null if not directly testing LLM interaction
-LLMClient client = null; // Replace with actual LLM client
-Tool tool = new ExampleEchoTool();
-Memory memory = new ShortTermMemory();
-
-Agent agent = new BasicAgent(
-    "ResearcherAgent",
-    "Specialized in researching complex topics.",
-    List.of(tool),
-    client,
-    memory
-);
-
-System.out.println("Agent created: " + agent.getName());
+// Create a basic agent with a role and LLM client
+Agent researcher = BasicAgent.builder()
+    .role("Research Specialist")
+    .LLMClient(llmClient)
+    .build();
 ```
 
 ### Basic Example: Defining a Task
 
 ```java
 import com.javaagentai.aiagents.core.Task;
-import java.util.Map;
 
-Task task = new Task(
-    "Research the future of renewable energy.",
-    Map.of("specific_focus", "solar and wind power"),
-    "A detailed report on the future trends of solar and wind power.",
-    false // requiresHumanInput = false by default in this constructor
-);
-
-System.out.println("Task defined: " + task.getDescription());
+// Define a task with description, input, and expected output
+Task researchTask = Task.builder()
+    .description("Research the latest developments in AI agents")
+    .input("Focus on multi-agent systems and their applications")
+    .expectedOutput("A summary of key findings and trends")
+    .build();
 ```
 
-### Basic Example: Running a Simple Crew (Sequential)
+### Basic Example: Running a Simple Crew
 
 ```java
 import com.javaagentai.aiagents.core.Crew;
-import com.javaagentai.aiagents.core.ProcessStrategy;
-import com.javaagentai.aiagents.core.Agent;
-import com.javaagentai.aiagents.core.Task;
-// Assume agent1, agent2, and initialTask are defined as above or similarly
+import com.javaagentai.aiagents.core.process.SequentialProcess;
 
-// LLMClient client1 = ...; Memory memory1 = ...;
-// Agent agent1 = new BasicAgent("Researcher", "...", List.of(), client1, memory1);
-// LLMClient client2 = ...; Memory memory2 = ...;
-// Agent agent2 = new BasicAgent("Writer", "...", List.of(), client2, memory2);
-// Task initialTask = new Task("Research and write about AI", Map.of(), "Article about AI");
+// Create a crew with a sequential process
+Crew researchCrew = Crew.builder()
+    .addAgent(researcher)
+    .addAgent(writer)
+    .withProcess(new SequentialProcess())
+    .build();
 
-// For this snippet, let's assume agent1 and agent2 are already created.
-// For a runnable example, ensure they are properly initialized.
-// Agent agent1 = new BasicAgent("Agent1", "Role1", List.of(), null, new ShortTermMemory());
-// Agent agent2 = new BasicAgent("Agent2", "Role2", List.of(), null, new ShortTermMemory());
-// Task initialTask = new Task("Sequential Task", Map.of(), "Sequential Output");
+// Run the crew with the task and get the result
+CompletableFuture<String> result = researchCrew.run(researchTask);
 
-
-// Crew crew = new Crew(List.of(agent1, agent2), ProcessStrategy.SEQUENTIAL);
-// CompletableFuture<String> resultFuture = crew.execute(initialTask);
-
-// try {
-//     String output = resultFuture.get(); // Blocks until the future is complete
-//     System.out.println("Crew execution finished. Final Output: " + output);
-// } catch (InterruptedException | ExecutionException e) {
-//     e.printStackTrace();
-// }
+// When the task completes, process the result
+result.thenAccept(output -> {
+    System.out.println("Task completed with result: " + output);
+});
 ```
-*(Note: The above crew example is conceptual. A runnable version requires actual LLM client mocks or implementations for agents to produce meaningful sequential output.)*
 
-## 5. Detailed Usage Examples (Conceptual)
+## 5. Advanced Examples
 
 ### Hierarchical Process
 
-A `HierarchicalProcess` involves a manager agent delegating tasks to worker agents.
+The hierarchical process designates a manager agent that delegates subtasks to worker agents and synthesizes their outputs.
 
-1.  **Define Agents:** Create a manager agent and one or more worker agents.
-2.  **Configure Manager's LLM:** The manager's LLM should be prompted to understand its role: to break down the main task and assign sub-tasks to available workers in a specific JSON format.
-    ```json
-    // Expected JSON output from Manager for planning
-    {
-      "sub_tasks": [
-        {
-          "task_description": "Sub-task 1 description",
-          "assigned_agent_name": "WorkerAgentName1",
-          "expected_output": "Expected output for sub-task 1"
-        }
-      ],
-      "manager_notes": "Optional notes for synthesis phase."
-    }
-    ```
-3.  **Create Crew:** The first agent in the list passed to the `Crew` constructor becomes the manager.
-    ```java
-    // Agent manager = new BasicAgent("Manager", "Manages tasks", ..., managerLLM, managerMemory);
-    // Agent worker1 = new BasicAgent("Worker1", "Executes sub-tasks", ..., workerLLM1, workerMemory1);
-    // Crew crew = new Crew(List.of(manager, worker1), ProcessStrategy.HIERARCHICAL);
-    // CompletableFuture<String> finalReport = crew.execute(mainTask);
-    ```
-    The `HierarchicalProcess` will first call the manager to get the plan, then execute sub-tasks sequentially using workers, and finally call the manager again to synthesize the results.
+```java
+// Define a manager agent with specific LLM configuration
+Agent manager = BasicAgent.builder()
+    .role("Project Manager")
+    .llmClient(new OpenAiClient("apikey", "gpt-4.0"))
+    .build();
+
+// Define worker agents
+Agent researcher = BasicAgent.builder()
+    .role("Research Specialist")
+    .llmClient(llmClient)
+    .build();
+
+Agent writer = BasicAgent.builder()
+    .role("Content Writer")
+    .llmClient(llmClient)
+    .build();
+
+// Create a hierarchical process crew
+Crew researchTeam = Crew.builder()
+    .agents(List.of(manager, researcher, writer))
+    .process(new HierarchicalProcess(manager))
+    .build();
+
+// Run the crew with a complex task
+CompletableFuture<String> result = researchTeam.run(complexTask);
+```
+
+**How It Works:**
+1. The manager agent breaks down the main task into subtasks
+2. Worker agents execute their assigned subtasks
+3. The manager collects and synthesizes all results
+4. The final output combines the work of all agents
 
 ### Consensual Process
 
-A `ConsensualProcess` has all agents perform the initial task, and then a synthesizer (last agent in the list) combines their outputs.
+The consensual process has multiple agents perform the same task independently, and their outputs are synthesized to form a consensus.
 
-1.  **Define Agents:** Create multiple contributor agents and one synthesizer agent.
-2.  **Create Crew:** List contributor agents first, with the synthesizer agent last.
-    ```java
-    // Agent contributor1 = ...; Agent contributor2 = ...; Agent synthesizer = ...;
-    // Crew crew = new Crew(List.of(contributor1, contributor2, synthesizer), ProcessStrategy.CONSENSUAL);
-    // CompletableFuture<String> consensusOutput = crew.execute(initialTask);
-    ```
-    The `ConsensualProcess` executes `initialTask` on `contributor1` and `contributor2` (and `synthesizer` too, as per current implementation) in parallel. Then, it provides all outputs to `synthesizer` to produce the final answer.
+```java
+// Define multiple expert agents
+Agent expertA = BasicAgent.builder()
+    .role("AI Ethics Expert")
+    .llmClient(llmClient)
+    .build();
+
+Agent expertB = BasicAgent.builder()
+    .role("AI Technical Expert")
+    .llmClient(llmClient)
+    .build();
+
+Agent expertC = BasicAgent.builder()
+    .role("AI Policy Expert")
+    .llmClient(llmClient)
+    .build();
+
+// Create a consensual process crew
+Crew expertPanel = Crew.builder()
+    .agents(List.of(expertA, expertB, expertC))
+    .process(new ConsensualProcess())
+    .build();
+
+// Run the crew to get consensus on a complex question
+CompletableFuture<String> consensus = expertPanel.run(ethicsQuestion);
+```
+
+**When to Use:**
+- For critical decisions requiring multiple perspectives
+- When validation and fact-checking are important
+- To reduce bias by combining diverse viewpoints
+- For complex problems where consensus improves accuracy
 
 ### Tool Usage
 
-Agents equipped with tools can decide to use them based on LLM guidance. The `BasicAgent` is designed to prompt the LLM with available tools and parse a JSON response if the LLM indicates a tool should be used.
+Tools extend agent capabilities beyond language generation, allowing them to perform actions like web searches, code execution, and data analysis.
 
 ```java
-// Conceptual LLM interaction for tool use (internal to BasicAgent):
-// LLM might respond with:
-// {
-//   "tool_name": "WebSearchTool",
-//   "tool_parameters": { "query": "latest AI trends" }
-// }
-// BasicAgent would parse this, find "WebSearchTool", and call its .use() method.
-// The tool's output is then fed back into the LLM conversation.
+// Create a web search tool
+Tool webSearchTool = new WebSearchTool();
+
+// Create a code execution tool
+Tool codeExecutionTool = new CodeExecutionTool();
+
+// Add tools to an agent
+Agent researchAgent = BasicAgent.builder()
+    .role("Research Assistant")
+    .llmClient(llmClient)
+    .build();
+
+researchAgent.addTool(webSearchTool);
+researchAgent.addTool(codeExecutionTool);
+
+// The agent can now use these tools during task execution
+// LLM will be prompted with tool descriptions and usage patterns
 ```
 
-### Human-in-the-Loop (HITL)
-
-A task can be marked as requiring human input.
-
-1.  **Define Task:**
-    ```java
-    // Task hitlTask = new Task("Review this draft", Map.of("draft", "..."), "Reviewed draft", true); // true for requiresHumanInput
-    ```
-2.  **Agent Execution:** When an agent like `BasicAgent` receives such a task and `humanInput` is not yet set, it will:
-    *   Set the task's status to `AWAITING_HUMAN_INPUT`.
-    *   Store a `CompletableFuture` handle in the task via `task.setExternalCompletionHandle()`.
-    *   The `agent.performTask()` method returns a future that will only complete after this handle is externally completed.
-3.  **Providing Input:** An external system or user interface would monitor tasks `AWAITING_HUMAN_INPUT`.
-    ```java
-    // if (hitlTask.getStatus() == TaskStatus.AWAITING_HUMAN_INPUT) {
-    //     String humanFeedback = "This looks good, proceed."; // Get actual human input
-    //     hitlTask.setHumanInput(humanFeedback); // This completes the internal future
-    // }
-    ```
-    Once `setHumanInput()` is called, the agent's paused operation resumes, using the human's input as its result for that step.
+**Tool Integration Process:**
+1. Create tool implementations for specific functionalities
+2. Add tools to agents that need those capabilities
+3. During task execution, the LLM is informed about available tools
+4. The agent invokes tools when needed to complete tasks
 
 ### Memory Usage
 
-Agents use their `Memory` (e.g., `ShortTermMemory`) to store and retrieve information.
+Memory allows agents to store and retrieve information across interactions, maintaining context and learning from past experiences.
 
-1.  **Storing Information:**
-    ```java
-    // Inside BasicAgent, after a successful tool use or task completion:
-    // agent.getMemory().add("tool_interaction:SearchTool:" + task.getId(), toolOutput);
-    // agent.getMemory().add("task_summary:" + task.getId() + ":" + task.getDescription(), finalLLMAnswer);
-    ```
-2.  **Retrieving Information for Prompts:**
-    *   `BasicAgent` automatically searches its memory based on the current task's description (e.g., `memory.search(task.getDescription(), 3)`).
-    *   This retrieved information is then added to the prompt provided to the LLM, under a section like "Relevant Information from Memory:", helping the LLM make more informed decisions.
+```java
+// Create an agent with memory
+Agent agent = BasicAgent.builder()
+    .role("Assistant")
+    .llmClient(llmClient)
+    .withMemory(new ShortTermMemory())
+    .build();
+
+// Agent stores information in memory
+agent.getMemory().store("user_preference", "prefers detailed explanations");
+
+// Later, the agent can retrieve this information
+String preference = agent.getMemory().retrieve("user_preference");
+
+// The memory is also provided to the LLM during task execution
+// so the model can reference past interactions and stored information
+```
+
+**Memory Types:**
+- **ShortTermMemory:** For session-based storage, retaining information during the current execution
+- **LongTermMemory:** Coming soon - Persistent storage for information across multiple sessions
+
+### Human-in-the-Loop (HITL)
+
+Human-in-the-Loop allows for human intervention at critical points in the agent workflow, enabling review, correction, and guidance.
+
+```java
+// Define a task with human-in-the-loop
+Task criticalTask = Task.builder()
+    .description("Generate a marketing strategy")
+    .input(new HashMap<>())
+    .expectedOutput("Comprehensive marketing strategy")
+    .requiresHumanInput(true)  // Enable human review
+    .build();
+
+// Run the task with an agent
+CompletableFuture<String> result = marketingAgent.executeTask(criticalTask);
+
+// The task execution will pause at the defined checkpoint
+// and wait for human input before continuing
+
+// To provide human input (in your application code):
+criticalTask.setHumanInput("Please focus more on social media channels");
+```
+
+**When to Use HITL:**
+- For sensitive decisions requiring human judgment
+- When quality assurance is critical
+- For processes that may require course correction
+- To provide additional context or instructions
+
+**HITL Process Flow:**
+1. Define a task with human-in-the-loop enabled
+2. Agent begins task execution
+3. At the checkpoint, execution pauses
+4. System waits for human input
+5. Human provides feedback or guidance
+6. Agent continues execution with human input
 
 ## 6. LLM Integration
 
-The framework interacts with Large Language Models via the `LLMClient` interface (`com.javaagentai.aiagents.llm.LLMClient`). This interface defines methods like `complete(String prompt)` for getting responses from an LLM.
+Crew4J integrates with Large Language Models through the `LLMClient` interface, allowing connection to any LLM provider.
 
-While specific implementations are not part of the core framework structure provided initially, the design allows for plugging in any LLM. Based on common Java libraries and potential `pom.xml` entries, planned or example integrations could include:
+### LLMClient Interface
 
-*   **Vertex AI Gemini/PaLM:** Using Google Cloud's Java SDK.
-*   **OpenAI GPT Models:** Via libraries like `openai-java`.
-*   **Anthropic Claude:** If a Java SDK becomes available or via direct HTTP.
-*   **Groq API:** For fast inference, accessible via HTTP.
+```java
+public interface LLMClient {
+    /**
+     * Completes the given prompt using the language model.
+     *
+     * @param prompt The input prompt to be completed
+     * @return The completion result from the language model
+     */
+    String complete(String prompt);
+}
+```
 
-Developers would implement the `LLMClient` interface for their chosen LLM provider.
+### OpenAI Integration Example
 
-## 7. Future Work / Roadmap (Optional)
+```java
+package com.javaagentai.aiagents.llm;
 
-*   **True Long-Term Memory:** Integration with vector databases (e.g., Pinecone, Weaviate, Milvus, PGVector) for persistent and scalable memory.
-*   **Advanced Tool Schemas:** Support for more complex tool definitions and function calling capabilities similar to OpenAI Functions.
-*   **More Process Strategies:** Explore additional strategies like voting mechanisms or more dynamic agent selection.
-*   **User Interface for HITL:** A simple UI to manage tasks awaiting human input.
-*   **Enhanced Error Handling & Resilience:** More sophisticated error handling within processes.
-*   **Inter-Agent Communication:** Standardized protocols for direct agent-to-agent messaging.
-*   **Configuration Management:** Easier ways to configure agents, tools, and LLMs.
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
+
+public class OpenAiClient implements LLMClient {
+    private final String apiKey;
+    private final String model;
+    private final String baseUrl;
+    private final ObjectMapper mapper;
+
+    public OpenAiClient(String apiKey, String model) {
+        this.apiKey = apiKey;
+        this.model = model;
+        this.baseUrl = "https://api.openai.com/v1/chat/completions";
+        this.mapper = new ObjectMapper();
+    }
+
+    @Override
+    public String complete(String prompt) {
+        try {
+            Map<String, Object> body = Map.of(
+                "model", model,
+                "messages", List.of(Map.of(
+                    "role", "user",
+                    "content", prompt
+                ))
+            );
+
+            String requestBody = mapper.writeValueAsString(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                return "[OpenAI error: " + response.statusCode() + "]";
+            }
+
+            Map<?, ?> json = mapper.readValue(response.body(), Map.class);
+            List<?> choices = (List<?>) json.get("choices");
+
+            if (choices != null && !choices.isEmpty()) {
+                Map<?, ?> choice = (Map<?, ?>) choices.get(0);
+                Map<?, ?> message = (Map<?, ?>) choice.get("message");
+                return (String) message.get("content");
+            }
+
+            return "[OpenAI error: unable to retrieve response]";
+
+        } catch (Exception e) {
+            return "[OpenAI error: " + e.getMessage() + "]";
+        }
+    }
+
+    @Override
+    public void close() {
+        // No resources to close in this implementation
+    }
+}
+```
+
+### Supported LLM Providers
+
+Crew4J can integrate with any LLM provider that offers an API:
+
+- **OpenAI:** GPT-3.5, GPT-4, and future models
+- **Google:** PaLM, Gemini, and other models via Vertex AI
+- **Anthropic:** Claude models via the Anthropic API
+- **Groq:** Fast inference for various models
+- **Custom LLMs:** Self-hosted open-source models, internal proprietary models, or any other LLM service
+
+### LLM Integration Best Practices
+
+**Performance Optimization:**
+- Use connection pooling to reduce latency
+- Implement retries with backoff for transient failures
+- Cache responses when appropriate
+- Use appropriate timeouts
+
+**Error Handling:**
+- Catch and log specific exceptions
+- Implement graceful fallbacks
+- Validate responses for expected format and quality
+- Monitor rate limits
+
+**Security Considerations:**
+- Secure API key storage using environment variables
+- Use HTTPS for all API communication
+- Consider privacy implications of data sent to LLMs
+- Validate and sanitize inputs to prevent prompt injection
+
+## 7. Architecture and Design
+
+### Asynchronous Operations
+
+Crew4J leverages `CompletableFuture` for non-blocking execution:
+
+```java
+// All agent operations return CompletableFuture
+CompletableFuture<String> agentResult = agent.executeTask(task);
+
+// Chain operations asynchronously
+agentResult
+    .thenApply(result -> processResult(result))
+    .thenAccept(finalResult -> saveToDatabase(finalResult))
+    .exceptionally(throwable -> {
+        logger.error("Task failed", throwable);
+        return null;
+    });
+```
+
+### Memory Architecture
+
+The memory system provides contextual awareness:
+
+```java
+// Memory automatically integrates with LLM prompts
+Memory memory = new ShortTermMemory();
+memory.store("user_context", "Working on quarterly report");
+memory.store("previous_result", "Market analysis completed");
+
+// During task execution, relevant memory is included in prompts
+String relevantInfo = memory.search(task.getDescription(), 3);
+// This information is automatically added to LLM prompts
+```
 
 ## 8. Contributing
 
-Contributions are welcome! Please refer to `CONTRIBUTING.md` for guidelines on how to contribute to this project, including coding standards, testing, and pull request processes.
+Contributions are welcome! Please refer to the contribution guidelines for:
+- Coding standards and best practices
+- Testing requirements and procedures
+- Pull request processes
+- Issue reporting guidelines
 
 ## 9. License
 
-This project is licensed under the **Apache 2.0 License**. See the `LICENSE` file for details.
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.
+
+## 10. Support and Community
+
+- **GitHub Repository:** [https://github.com/MaheshAwasare/crew4j](https://github.com/MaheshAwasare/crew4j)
+- **Documentation:** [https://crew4j.com](https://crew4j.com)
+- **Issues:** Report bugs and feature requests on GitHub
+- **Email:** maheshawasare@gmail.com
+
+---
+
+**Author:** Mahesh Awasare
+
+Crew4J empowers Java developers to build sophisticated multi-agent AI systems with ease, providing the tools and flexibility needed to create collaborative AI solutions for complex real-world problems.
