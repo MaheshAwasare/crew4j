@@ -56,7 +56,13 @@ public class HumanInTheLoopTest {
         agentMemory = new ShortTermMemory(10);
         LLMClient mockLLMClient = new MockHitlLLMClient();
         // BasicAgent constructor: String name, String role, List<Tool> tools, LLMClient llmClient, Memory memory
-        hitlAgent = new BasicAgent("HitlTestAgent", "Human Interaction Specialist", Collections.emptyList(), mockLLMClient, agentMemory);
+        hitlAgent = BasicAgent.builder()
+                .name("HitlTestAgent")
+                .role("Human Interaction Specialist")
+                .tools(Collections.emptyList())
+                .llmClient(mockLLMClient)
+                .memory(agentMemory)
+                .build();
     }
 
     @AfterAll
@@ -74,12 +80,13 @@ public class HumanInTheLoopTest {
 
         String taskDescription = "A task that needs human review before completion.";
         CompletableFuture<TaskResult> callbackFuture = new CompletableFuture<>();
-        Task task = new Task(
-                taskDescription,
-                Map.of("data", "initial data for task"),
-                "Expected human-verified output.",
-                true // requiresHumanInput = true
-        );
+        Task task = Task.builder()
+                .description(taskDescription)
+                .input(Map.of("data", "initial data for task"))
+                .expectedOutput("Expected human-verified output.")
+                .requiresHumanInput(true)
+                .build();
+
         task.setCallback(result -> {
             context.log("HITL_TEST_CALLBACK: Task " + task.getId() + " " + result.status() +
                         (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
@@ -131,13 +138,16 @@ public class HumanInTheLoopTest {
 
         String taskDescription = "A standard task that completes via LLM.";
         CompletableFuture<TaskResult> callbackFuture = new CompletableFuture<>();
-        Task task = new Task(
-                taskDescription,
-                Map.of("data", "some data"),
-                "Expected LLM output.",
-                false // requiresHumanInput = false
-        );
-         task.setCallback(result -> {
+
+
+        Task task = Task.builder()
+                .description(taskDescription)
+                .input(Map.of("data", "initial data for task"))
+                .expectedOutput("Expected LLM output.")
+                .requiresHumanInput(true)
+                .build();
+
+        task.setCallback(result -> {
             context.log("NON_HITL_TEST_CALLBACK: Task " + task.getId() + " " + result.status() +
                         (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
             callbackFuture.complete(result);

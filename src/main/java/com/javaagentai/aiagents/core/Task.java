@@ -1,39 +1,49 @@
 package com.javaagentai.aiagents.core;
 
 import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 import java.util.UUID; // Added for ID
 import java.util.concurrent.CompletableFuture; // Added for HITL
 import java.util.function.Consumer;
 @Builder
+@Data
 public class Task {
     private final String id = UUID.randomUUID().toString(); // New field for unique ID
     private final String description;
     private final Map<String, Object> input;
     private final String expectedOutput;
+    @Setter
     private Agent assignedAgent;
+    @Setter
+    @Getter
     private TaskStatus status;
+    @Setter
     private Consumer<TaskResult> callback;
 
     // HITL specific fields
-    private String humanInput = null; // New field
-    private boolean requiresHumanInput = false; // New field
+    private String humanInput;
+    private boolean requiresHumanInput;
+    // Setter for externalCompletionHandle
+    @Setter
     private transient CompletableFuture<String> externalCompletionHandle; // New field for HITL
 
     // Constructor updated for requiresHumanInput
-    public Task(String description, Map<String, Object> input, String expectedOutput, boolean requiresHumanInput) {
+   /* public Task(String description, Map<String, Object> input, String expectedOutput, boolean requiresHumanInput) {
         this(description, input, expectedOutput, null, TaskStatus.PENDING, null, requiresHumanInput);
     }
     
     // Overloaded constructor without requiresHumanInput (defaults to false)
     public Task(String description, Map<String, Object> input, String expectedOutput) {
         this(description, input, expectedOutput, null, TaskStatus.PENDING, null, false);
-    }
+    }*/
 
 
     // Full constructor updated for requiresHumanInput
-    public Task(String description, Map<String, Object> input, String expectedOutput, Agent assignedAgent, TaskStatus initialStatus, Consumer<TaskResult> callback, boolean requiresHumanInput) {
+   /* public Task(String description, Map<String, Object> input, String expectedOutput, Agent assignedAgent, TaskStatus initialStatus, Consumer<TaskResult> callback, boolean requiresHumanInput) {
         this.description = description;
         this.input = input;
         this.expectedOutput = expectedOutput;
@@ -47,47 +57,9 @@ public class Task {
      public Task(String description, Map<String, Object> input, String expectedOutput, Agent assignedAgent, TaskStatus initialStatus, Consumer<TaskResult> callback) {
         this(description, input, expectedOutput, assignedAgent, initialStatus, callback, false); // Default requiresHumanInput to false
     }
+*/
 
 
-    public String getId() { // Getter for ID
-        return id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Map<String, Object> getInput() {
-        return input;
-    }
-
-    public String getExpectedOutput() {
-        return expectedOutput;
-    }
-
-    public Agent getAssignedAgent() {
-        return assignedAgent;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public Consumer<TaskResult> getCallback() {
-        return callback;
-    }
-
-    public boolean isRequiresHumanInput() { // Getter for requiresHumanInput
-        return requiresHumanInput;
-    }
-
-    public void setRequiresHumanInput(boolean requiresHumanInput) { // Setter for requiresHumanInput
-        this.requiresHumanInput = requiresHumanInput;
-    }
-
-    public String getHumanInput() { // Getter for humanInput
-        return humanInput;
-    }
 
     /**
      * Sets the human input for the task and attempts to complete the external handle.
@@ -107,22 +79,6 @@ public class Task {
         }
     }
 
-    public void setExternalCompletionHandle(CompletableFuture<String> future) { // Setter for externalCompletionHandle
-        this.externalCompletionHandle = future;
-    }
-
-
-    public void setAssignedAgent(Agent assignedAgent) {
-        this.assignedAgent = assignedAgent;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-    public void setCallback(Consumer<TaskResult> callback) {
-        this.callback = callback;
-    }
 
     public void completeTask(TaskResult result) {
         this.status = result.status();

@@ -142,14 +142,30 @@ public class HierarchicalProcessTest {
         
         // No tools for this basic hierarchical test to keep it focused on the process itself.
 
-        projectManagerAgent = new BasicAgent(MANAGER_NAME, "Project Management", Collections.emptyList(),
-                new MockManagerLLMClient("Create a blog post about AI and climate change, including research."), managerMemory);
+        projectManagerAgent = BasicAgent.builder()
+                .name(MANAGER_NAME)
+                .role("Project Management")
+                .tools(Collections.emptyList())
+                .llmClient(new MockManagerLLMClient("Create a blog post about AI and climate change, including research."))
+                .memory(managerMemory)
+                .build();
 
-        researcherAgent = new BasicAgent(RESEARCHER_NAME, "Research Specialist", Collections.emptyList(),
-                new MockWorkerLLMClient(RESEARCHER_NAME), researcherMemory);
+        researcherAgent = BasicAgent.builder()
+                .name(RESEARCHER_NAME)
+                .role("Research Specialist")
+                .tools(Collections.emptyList())
+                .llmClient(new MockWorkerLLMClient(RESEARCHER_NAME))
+                .memory(researcherMemory)
+                .build();
 
-        writerAgent = new BasicAgent(WRITER_NAME, "Content Writing Specialist", Collections.emptyList(),
-                new MockWorkerLLMClient(WRITER_NAME), writerMemory);
+        writerAgent = BasicAgent.builder()
+                .name(WRITER_NAME)
+                .role("Content Writing Specialist")
+                .tools(Collections.emptyList())
+                .llmClient(new MockWorkerLLMClient(WRITER_NAME))
+                .memory(writerMemory)
+                .build();
+
     }
 
     @AfterAll
@@ -166,17 +182,18 @@ public class HierarchicalProcessTest {
 
         String initialTaskDesc = "Create a blog post about AI and climate change, including research.";
         CompletableFuture<TaskResult> callbackFuture = new CompletableFuture<>();
-        Task initialTask = new Task(
-                initialTaskDesc,
-                Map.of("topic", "AI and Climate Change"),
-                "A comprehensive blog post on AI's role in climate change, based on research.",
-                null,
-                TaskStatus.PENDING,
-                result -> {
-                    context.log("HIERARCHICAL_TEST_CALLBACK: Task " + result.status() + (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
+        Task initialTask = Task.builder()
+                .description(initialTaskDesc)
+                .input(Map.of("topic", "AI and Climate Change"))
+                .expectedOutput("A comprehensive blog post on AI's role in climate change, based on research.")
+                .status(TaskStatus.PENDING)
+                .callback(result -> {
+                    context.log("HIERARCHICAL_TEST_CALLBACK: Task " + result.status() +
+                            (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
                     callbackFuture.complete(result);
-                }
-        );
+                })
+                .build();
+
 
         HierarchicalProcess hierarchicalProcess = new HierarchicalProcess();
         CompletableFuture<String> finalResultFuture = hierarchicalProcess.execute(initialTask, agents, context);

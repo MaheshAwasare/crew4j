@@ -37,15 +37,15 @@ public class ConsensualProcess implements Process {
             // especially around status and callbacks if the initialTask object is reused directly.
             // The description, input, and expected output are from the original task.
             // No specific callback for these individual runs; the overall process handles the final callback.
-            Task agentSpecificTask = new Task(
-                initialTask.getDescription(),
-                initialTask.getInput(), // Assuming input is shareable/immutable or clone if necessary
-                initialTask.getExpectedOutput(), // Expected output is for the overall task
-                agent, // Assign agent for clarity, though performTask will also do this
-                TaskStatus.PENDING,
-                null, // No individual callbacks for these parallel runs
-                initialTask.isRequiresHumanInput() // Preserve HITL requirement
-            );
+            Task agentSpecificTask = Task.builder()
+                    .description(initialTask.getDescription())
+                    .input(initialTask.getInput())
+                    .expectedOutput(initialTask.getExpectedOutput())
+                    .assignedAgent(agent)
+                    .status(TaskStatus.PENDING)
+                    .requiresHumanInput(initialTask.isRequiresHumanInput())
+                    .build();
+
             // If HITL is required, and human input is already present on initialTask, pass it.
             if (initialTask.getHumanInput() != null) {
                 agentSpecificTask.setHumanInput(initialTask.getHumanInput());
@@ -91,17 +91,17 @@ public class ConsensualProcess implements Process {
                 synthesisPromptDetails.toString()
             );
 
-            Task synthesisTask = new Task(
-                synthesisTaskDescription,
-                initialTask.getInput(), // Provide original input to synthesizer as well
-                initialTask.getExpectedOutput(),
-                synthesizerAgent,
-                TaskStatus.PENDING,
-                initialTask.getCallback(), // Use the original task's callback for the final result
-                false // Synthesis task usually does not require separate human input
-            );
-            
-            context.log("CONSENSUAL_PROCESS: Asking synthesizer agent " + synthesizerAgent.getName() + " to synthesize final answer for task " + initialTask.getId());
+                    Task synthesisTask = Task.builder()
+                            .description(synthesisTaskDescription)
+                            .input(initialTask.getInput())
+                            .expectedOutput(initialTask.getExpectedOutput())
+                            .assignedAgent(synthesizerAgent)
+                            .status(TaskStatus.PENDING)
+                            .callback(initialTask.getCallback())
+                            .requiresHumanInput(false)
+                            .build();
+
+                    context.log("CONSENSUAL_PROCESS: Asking synthesizer agent " + synthesizerAgent.getName() + " to synthesize final answer for task " + initialTask.getId());
             return synthesizerAgent.performTask(synthesisTask, context);
 
         }, agents.get(0).getMemory() != null ? ((BasicAgent)agents.get(0)).llmExecutor : Runnable::run) // Use an executor from an agent if possible, or a default one

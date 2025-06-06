@@ -16,7 +16,7 @@ public class Crew {
     private  Process process;
     // No global context here; it's per execution.
 
-    public Crew(List<Agent> agents, ProcessStrategy strategy) {
+   /* public Crew(List<Agent> agents, ProcessStrategy strategy) {
         Objects.requireNonNull(agents, "Agents list cannot be null.");
         Objects.requireNonNull(strategy, "Process strategy cannot be null.");
         // It's fine if agents list is empty, Process should handle it.
@@ -36,7 +36,7 @@ public class Crew {
             default:
                 throw new IllegalArgumentException("Unsupported process strategy: " + strategy);
         }
-    }
+    }*/
 
     public CompletableFuture<String> execute(Task initialTask) {
         Objects.requireNonNull(initialTask, "Initial task cannot be null.");

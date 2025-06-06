@@ -104,14 +104,14 @@ public class HierarchicalProcess implements Process {
                     }
 
                     Agent workerAgent = assignedAgentOpt.get();
-                    Task subTask = new Task(
-                            subTaskDetail.task_description(),
-                            initialTask.getInput(), // Or refine input based on manager's plan
-                            subTaskDetail.expected_output(),
-                            workerAgent,
-                            TaskStatus.PENDING,
-                            null // No separate callback for sub-tasks for now, manager handles synthesis
-                    );
+
+
+                    Task subTask = Task.builder()
+                                    .description(subTaskDetail.task_description())
+                                            .input(initialTask.getInput())
+                                                    .expectedOutput(subTaskDetail.expected_output())
+                                                            .assignedAgent(workerAgent)
+                                                                    .status(TaskStatus.PENDING).build();
                     context.log("HIERARCHICAL_PROCESS: Assigning sub-task '" + subTask.getDescription() + "' to agent " + workerAgent.getName());
                     return workerAgent.performTask(subTask, context)
                         .thenAccept(result -> {
@@ -143,14 +143,14 @@ public class HierarchicalProcess implements Process {
                     synthesisPromptDetails.toString()
                 );
 
-                Task synthesisTask = new Task(
-                        synthesisTaskDescription,
-                        new HashMap<>(), // Input for synthesis task, could include original inputs
-                        initialTask.getExpectedOutput(), // Expected output is for the overall task
-                        managerAgent,
-                        TaskStatus.PENDING,
-                        initialTask.getCallback() // Use the original task's callback for the final result
-                );
+
+
+                Task synthesisTask = Task.builder()
+                        .description(synthesisTaskDescription)
+                        .input( new HashMap<>())
+                        .expectedOutput(initialTask.getExpectedOutput())
+                        .assignedAgent(managerAgent)
+                        .status(TaskStatus.PENDING).build();
 
                 context.log("HIERARCHICAL_PROCESS: Asking manager " + managerAgent.getName() + " to synthesize final answer.");
                 return managerAgent.performTask(synthesisTask, context);

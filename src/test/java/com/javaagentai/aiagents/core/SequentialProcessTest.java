@@ -91,11 +91,27 @@ public class SequentialProcessTest {
         writerMemory = new ShortTermMemory(10);     // Initialize memory
         writerMemory.add("previous_finding:AI in Healthcare", "Writing");
         GroqClient researcherLLM = new GroqClient("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", "meta-llama/llama-4-scout-17b-16e-instruct");
-        researcherAgent = new BasicAgent("Researcher", "Data Research Specialist", researcherTools, researcherLLM, researcherMemory);
+
+        researcherAgent = BasicAgent.builder()
+                .name("Researcher")
+                .role("Data Research Specialist")
+                .tools(researcherTools)
+                .llmClient(researcherLLM)
+                .memory(researcherMemory)
+                .build();
 
         LLMClient writerLLM = new MockLLMClient("WriterAgent", "Writer processed: ");
-        writerAgent = new BasicAgent("Writer", "Content Generation Specialist", writerTools, writerLLM, writerMemory);
-        
+
+
+        writerAgent = BasicAgent.builder()
+                .name("Writer")
+                .role("Content Generation Specialist")
+                .tools(writerTools)
+                .llmClient(writerLLM)
+                .memory(writerMemory)
+                .build();
+
+
         // Pre-populate researcher's memory for one of the tests if needed or to see it in prompt
         researcherMemory.add("previous_finding:AI in Healthcare", "AI can predict patient deterioration.");
     }
@@ -123,17 +139,20 @@ public class SequentialProcessTest {
 
         CompletableFuture<TaskResult> callbackFuture = new CompletableFuture<>();
         String taskDesc = "Research AI impact on healthcare and write a summary.";
-        Task initialTask = new Task(
-                taskDesc,
-                Map.of("topic", "AI in Healthcare"),
-                "A concise summary of AI's impact on healthcare.",
-                null,
-                TaskStatus.PENDING,
-                result -> {
-                    context.log("CALLBACK TRIGGERED: Task " + result.status() + (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
+
+
+        Task initialTask = Task.builder()
+                .description(taskDesc)
+                .input(Map.of("topic", "AI in Healthcare"))
+                .expectedOutput("A concise summary of AI's impact on healthcare.")
+                .status(TaskStatus.PENDING)
+                .callback(result -> {
+                    context.log("CALLBACK TRIGGERED: Task " + result.status() +
+                            (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
                     callbackFuture.complete(result);
-                }
-        );
+                })
+                .build();
+
 
         SequentialProcess sequentialProcess = new SequentialProcess();
         CompletableFuture<String> finalResultFuture = sequentialProcess.execute(initialTask, agents, context);

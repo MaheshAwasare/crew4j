@@ -59,7 +59,14 @@ public class SequentialProcess implements Process {
                         // For now, we assume this loop is the main sequence.
                         // The creation of the next task should only happen if this isn't the last agent.
                         // This logic will be handled by returning the output string and the loop outside.
-                        return new Task(output, Map.copyOf(context.getSharedMemory()), currentTask.getExpectedOutput(), null, TaskStatus.PENDING, currentTask.getCallback());
+                        return Task.builder()
+                                .description(output)
+                                .input(Map.copyOf(context.getSharedMemory()))
+                                .expectedOutput(currentTask.getExpectedOutput())
+                                .status(TaskStatus.PENDING)
+                                .callback(currentTask.getCallback())
+                                .build();
+
                     })
                     .exceptionally(ex -> {
                         context.log("SEQUENTIAL_PROCESS_ASYNC: Agent " + agent.getName() + " failed task: " + currentTask.getDescription() + ". Error: " + ex.getMessage());

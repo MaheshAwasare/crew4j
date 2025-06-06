@@ -94,14 +94,31 @@ public class ConsensualProcessTest {
         memoryB = new ShortTermMemory();
         memorySynth = new ShortTermMemory();
 
-        contributorAgentA = new BasicAgent(CONTRIBUTOR_A_NAME, "Perspective Provider A", Collections.emptyList(),
-                new MockContributorLLMClient(CONTRIBUTOR_A_NAME, PERSPECTIVE_A), memoryA);
 
-        contributorAgentB = new BasicAgent(CONTRIBUTOR_B_NAME, "Perspective Provider B", Collections.emptyList(),
-                new MockContributorLLMClient(CONTRIBUTOR_B_NAME, PERSPECTIVE_B), memoryB);
 
-        synthesizerAgent = new BasicAgent(SYNTHESIZER_AGENT_NAME, "Insight Synthesizer", Collections.emptyList(),
-                new MockSynthesizerLLMClient(), memorySynth);
+
+        contributorAgentA = BasicAgent.builder()
+                .name(CONTRIBUTOR_A_NAME)
+                .role("Perspective Provider A")
+                .llmClient( new MockContributorLLMClient(CONTRIBUTOR_A_NAME, PERSPECTIVE_A))
+                .memory(memoryA)
+                .tools(Collections.emptyList()).build();
+
+
+        contributorAgentB = BasicAgent.builder()
+                .name(CONTRIBUTOR_B_NAME)
+                .role("Perspective Provider A")
+                .llmClient( new MockContributorLLMClient(CONTRIBUTOR_B_NAME, PERSPECTIVE_B))
+                .memory(memoryB)
+                .tools(Collections.emptyList()).build();
+
+        synthesizerAgent = BasicAgent.builder()
+                .name(SYNTHESIZER_AGENT_NAME)
+                .role("Insight Synthesizer")
+                .llmClient(new MockSynthesizerLLMClient())
+                .memory(memorySynth)
+                .tools(Collections.emptyList()).build();
+
     }
 
     @AfterAll
@@ -118,12 +135,13 @@ public class ConsensualProcessTest {
         memoryA.clear(); memoryB.clear(); memorySynth.clear();
 
         CompletableFuture<TaskResult> callbackFuture = new CompletableFuture<>();
-        Task initialTask = new Task(
-                INITIAL_TASK_DESC,
-                Map.of("context", "Modern society"),
-                "A balanced view on AI's societal impact.",
-                false // not requiring human input for this test
-        );
+
+        Task initialTask = Task.builder()
+                .description(INITIAL_TASK_DESC)
+                .input( Map.of("context", "Modern society"))
+                .requiresHumanInput(false)
+                .build();
+
         initialTask.setCallback(result -> {
             context.log("CONSENSUAL_TEST_CALLBACK: Task " + initialTask.getId() + " " + result.status() +
                         (result.error() != null ? " Error: " + result.error() : " Output: " + result.output()));
@@ -183,13 +201,15 @@ public class ConsensualProcessTest {
         memoryA.clear(); // Using Contributor A's memory
 
         CompletableFuture<TaskResult> callbackFuture = new CompletableFuture<>();
-        Task initialTask = new Task(
-                INITIAL_TASK_DESC,
-                Map.of("context", "Single agent scenario"),
-                "Perspective A expected.",
-                false 
-        );
-         initialTask.setCallback(result -> {
+
+        Task initialTask = Task.builder()
+                .description(INITIAL_TASK_DESC)
+                .input( Map.of("context", "Single agent scenario"))
+                .expectedOutput("Perspective A expected.")
+                .requiresHumanInput(false)
+                .build();
+
+        initialTask.setCallback(result -> {
             context.log("SINGLE_AGENT_CONSENSUAL_TEST_CALLBACK: Task " + initialTask.getId() + " " + result.status() + " Output: " + result.output());
             callbackFuture.complete(result);
         });

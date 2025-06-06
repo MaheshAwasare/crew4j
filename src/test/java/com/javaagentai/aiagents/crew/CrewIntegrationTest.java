@@ -42,13 +42,32 @@ public class CrewIntegrationTest {
         GroqClient groqClient = new GroqClient(apiKey, "meta-llama/llama-4-scout-17b-16e-instruct");
         // Create a Memory instance
         Memory memory = new ShortTermMemory(1000);
-
+        Task criticalTask = Task.builder()
+                .description("Generate a marketing strategy")
+                .input(new HashMap<>())
+                .expectedOutput("Comprehensive marketing strategy")
+                .requiresHumanInput(true)  // Enable human review
+                .build();
         // Create a Researcher agent
-        BasicAgent researcher = new BasicAgent("Researcher", "Research", List.of(), groqClient, memory);
+
+        Agent researcher = BasicAgent.builder()
+                .role("Research")
+                .name("Researcher")
+                .llmClient(groqClient)
+                .memory(memory)
+                .build();
+
         agents.add(researcher);
 
         // Create a Writer agent
-        BasicAgent writer = new BasicAgent("Writer", "Writing", List.of(new PdfWriterTool()), groqClient, memory);
+
+
+        Agent writer = BasicAgent.builder()
+                .name("Writer")
+                .role("Writing")
+                .llmClient(groqClient)
+                .memory(memory)
+                .build();
         agents.add(writer);
 
         strategy = ProcessStrategy.SEQUENTIAL;
@@ -62,7 +81,8 @@ public class CrewIntegrationTest {
         Task task = new Task("Summarize AI applications in a short article", input, "A short article on AI applications");
 
         // Create a crew
-        crew = new Crew(agents, strategy);
+        crew = Crew.builder().agents(agents).processStrategy(strategy).build();
+
 
         // Execute the task
         CompletableFuture<String> result = crew.execute(task);

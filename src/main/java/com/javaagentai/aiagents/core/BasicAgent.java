@@ -29,14 +29,14 @@ public class BasicAgent implements Agent {
 
     public record LLMToolCall(String tool_name, Map<String, Object> tool_parameters) {}
 
-    public BasicAgent(String name, String role, List<Tool> tools, LLMClient llmClient, Memory memory) {
+    /*public BasicAgent(String name, String role, List<Tool> tools, LLMClient llmClient, Memory memory) {
         this.name = name;
         this.role = role;
         this.tools = tools;
         this.llmClient = llmClient;
         this.memory = memory;
         this.llmExecutor = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors()));
-    }
+    }*/
 
     @Override
     public String getName() {
