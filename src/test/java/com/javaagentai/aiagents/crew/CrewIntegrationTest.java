@@ -78,7 +78,12 @@ public class CrewIntegrationTest {
         // Create a task
         Map<String, Object> input = new HashMap<>();
         input.put("topic", "AI Applications");
-        Task task = new Task("Summarize AI applications in a short article", input, "A short article on AI applications");
+        Task task = Task.builder()
+                .description("Summarize AI applications in a short article")
+                .input(input)
+                .expectedOutput("A short article on AI applications")
+                .build();
+
 
         // Create a crew
         crew = Crew.builder().agents(agents).processStrategy(strategy).build();

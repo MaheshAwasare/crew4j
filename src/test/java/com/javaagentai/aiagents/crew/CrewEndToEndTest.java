@@ -38,7 +38,13 @@ public class CrewEndToEndTest {
         // Create a mock memory
         Memory memory = mock(Memory.class);
         // Create a test agent
-        BasicAgent agent = new BasicAgent("TestAgent", "TestRole", List.of(), llmClient, memory);
+        BasicAgent agent = BasicAgent.builder()
+                .name("TestAgent")
+                .role("TestRole")
+                .tools(List.of())
+                .llmClient(llmClient)
+                .memory(memory)
+                .build();
         agents.add(agent);
         strategy = ProcessStrategy.SEQUENTIAL;
     }
@@ -48,9 +54,17 @@ public class CrewEndToEndTest {
         // Create a task
         Map<String, Object> input = new HashMap<>();
         input.put("key", "value");
-        Task task = new Task("Test Task", input, "Expected Output");
+        Task task =  Task.builder()
+                .description("Test Task")
+                .input(input)
+                .expectedOutput("Expected Output")
+                .build();
         // Create a crew
-        crew = new Crew(agents, strategy);
+
+        crew = Crew.builder()
+                .agents(agents)
+                .processStrategy(ProcessStrategy.SEQUENTIAL)
+                .build();
         // Execute the task
         CompletableFuture<String> result = crew.execute(task);
         // Verify the result
@@ -63,9 +77,16 @@ public class CrewEndToEndTest {
         // Create a task
         Map<String, Object> input = new HashMap<>();
         input.put("key", "value");
-        Task task = new Task("Test Task", input, "Expected Output");
+        Task task = Task.builder()
+                .description("Test Task")
+                .input(input)
+                .expectedOutput("Expected Output")
+                .build();
         // Create a crew
-        crew = new Crew(agents, ProcessStrategy.HIERARCHICAL);
+        crew = Crew.builder()
+                .agents(agents)
+                .processStrategy(ProcessStrategy.HIERARCHICAL)
+                .build();
         // Execute the task
         CompletableFuture<String> result = crew.execute(task);
         // Verify the result
@@ -78,9 +99,18 @@ public class CrewEndToEndTest {
         // Create a task that requires human input
         Map<String, Object> input = new HashMap<>();
         input.put("key", "value");
-        Task task = new Task("Test Task", input, "Expected Output", true);
+        Task task = Task.builder()
+                .description("Test Task")
+                .input(input)
+                .expectedOutput("Expected Output")
+                .build();
         // Create a crew
-        crew = new Crew(agents, strategy);
+
+
+        crew = Crew.builder()
+                .agents(agents)
+                .processStrategy(ProcessStrategy.SEQUENTIAL)
+                .build();
         // Execute the task
         CompletableFuture<String> result = crew.execute(task);
         // Simulate human input
