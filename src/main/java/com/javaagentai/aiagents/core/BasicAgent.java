@@ -15,7 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
 @Builder
+/**
+ * Author: Mahesh Awasare 
+ */
 public class BasicAgent implements Agent {
 
     private final String name;
@@ -23,11 +27,12 @@ public class BasicAgent implements Agent {
     private final List<Tool> tools;
     private final LLMClient llmClient;
     private final Memory memory;
-    public final ExecutorService llmExecutor;
+    public final ExecutorService llmExecutor = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors()));;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final int MAX_ITERATIONS = 5;
 
-    public record LLMToolCall(String tool_name, Map<String, Object> tool_parameters) {}
+    public record LLMToolCall(String tool_name, Map<String, Object> tool_parameters) {
+    }
 
     /*public BasicAgent(String name, String role, List<Tool> tools, LLMClient llmClient, Memory memory) {
         this.name = name;
@@ -67,7 +72,7 @@ public class BasicAgent implements Agent {
         if (task.isRequiresHumanInput() && task.getHumanInput() == null) {
             task.setStatus(TaskStatus.AWAITING_HUMAN_INPUT);
             context.log(name + " is AWAITING HUMAN INPUT for task: " + task.getDescription() + " (ID: " + task.getId() + ")");
-            
+
             CompletableFuture<String> humanInputCompletionFuture = new CompletableFuture<>();
             task.setExternalCompletionHandle(humanInputCompletionFuture); // Store the handle in the task
 
@@ -79,7 +84,7 @@ public class BasicAgent implements Agent {
                 // Treat human input as the direct result of this agent's step for this task.
                 // Store this human input in memory as if it were a final answer for this step.
                 this.memory.add("human_input_received:" + task.getId() + ":" + task.getDescription(), humanProvidedInput);
-                
+
                 // Complete the task with the human input as the result.
                 // The callback of the original task object will be triggered.
                 // Note: If further processing of human_input by LLM was needed, this logic would be different.
@@ -113,10 +118,14 @@ public class BasicAgent implements Agent {
             // conversationHistory.append("\nHuman provided input: ").append(task.getHumanInput());
             // However, the current HITL logic assumes human input *is* the answer for the step.
         }
-        
+
         AtomicInteger iterationCount = new AtomicInteger(0);
-        return CompletableFuture.supplyAsync(() -> buildInitialPrompt(task, context, conversationHistory.toString()), llmExecutor)
-                .thenComposeAsync(prompt -> processLlmInteraction(prompt, task, context, conversationHistory, iterationCount), llmExecutor);
+        CompletableFuture<String> initialPromptFuture = CompletableFuture.supplyAsync(
+                () -> buildInitialPrompt(task, context, conversationHistory.toString()), llmExecutor);
+        return initialPromptFuture.thenComposeAsync(prompt ->
+
+                processLlmInteraction(prompt, task, context, conversationHistory, iterationCount), llmExecutor);
+
     }
 
     private CompletableFuture<String> processLlmInteraction(String currentPrompt, Task task, AgentContext context, StringBuilder conversationHistory, AtomicInteger iterationCount) {
@@ -145,21 +154,21 @@ public class BasicAgent implements Agent {
                 context.log(name + " attempting to use tool: " + selectedTool.getName() + " with params: " + toolCall.tool_parameters() + " for task " + task.getId());
 
                 return selectedTool.use(toolCall.tool_parameters())
-                    .handleAsync((toolResult, toolError) -> {
-                        if (toolError != null) {
-                            String errorMsg = toolError.getMessage();
-                            context.log(name + " tool execution failed for task " + task.getId() + ": " + errorMsg);
-                            conversationHistory.append("\nTool ").append(selectedTool.getName()).append(" execution failed: ").append(errorMsg);
-                            this.memory.add("tool_error:" + selectedTool.getName() + ":" + task.getId(), errorMsg);
-                        } else {
-                            context.log(name + " tool " + selectedTool.getName() + " executed for task " + task.getId() + ". Result: " + toolResult);
-                            conversationHistory.append("\nTool ").append(selectedTool.getName()).append(" output: ").append(toolResult);
-                            this.memory.add("tool_interaction:" + selectedTool.getName() + ":" + task.getId(), toolResult);
-                        }
-                        String nextPrompt = buildFollowUpPrompt(task, context, conversationHistory.toString());
-                        return nextPrompt;
-                    }, llmExecutor)
-                    .thenComposeAsync(nextPrompt -> processLlmInteraction(nextPrompt, task, context, conversationHistory, iterationCount), llmExecutor);
+                        .handleAsync((toolResult, toolError) -> {
+                            if (toolError != null) {
+                                String errorMsg = toolError.getMessage();
+                                context.log(name + " tool execution failed for task " + task.getId() + ": " + errorMsg);
+                                conversationHistory.append("\nTool ").append(selectedTool.getName()).append(" execution failed: ").append(errorMsg);
+                                this.memory.add("tool_error:" + selectedTool.getName() + ":" + task.getId(), errorMsg);
+                            } else {
+                                context.log(name + " tool " + selectedTool.getName() + " executed for task " + task.getId() + ". Result: " + toolResult);
+                                conversationHistory.append("\nTool ").append(selectedTool.getName()).append(" output: ").append(toolResult);
+                                this.memory.add("tool_interaction:" + selectedTool.getName() + ":" + task.getId(), toolResult);
+                            }
+                            String nextPrompt = buildFollowUpPrompt(task, context, conversationHistory.toString());
+                            return nextPrompt;
+                        }, llmExecutor)
+                        .thenComposeAsync(nextPrompt -> processLlmInteraction(nextPrompt, task, context, conversationHistory, iterationCount), llmExecutor);
             } else {
                 context.log(name + " LLM tried to use unknown tool: " + toolCall.tool_name() + " for task " + task.getId());
                 conversationHistory.append("\nAttempted to use unknown tool: ").append(toolCall.tool_name());
@@ -218,6 +227,7 @@ public class BasicAgent implements Agent {
         context.log(name + " could not detect tool invocation in LLM response.");
         return Optional.empty();
     }
+
     private String extractFullJsonBlock(String text) {
         int openBraces = 0;
         int endIndex = -1;
@@ -233,6 +243,7 @@ public class BasicAgent implements Agent {
         }
         return (endIndex != -1) ? text.substring(0, endIndex + 1) : null;
     }
+
     private String buildToolDescriptions(List<Tool> tools) {
         StringBuilder sb = new StringBuilder();
         for (Tool tool : tools) {

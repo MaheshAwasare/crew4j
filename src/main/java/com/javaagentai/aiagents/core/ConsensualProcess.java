@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+/**
+ * Author: Mahesh Awasare
+ */
 public class ConsensualProcess implements Process {
 
     @Override
@@ -54,42 +57,42 @@ public class ConsensualProcess implements Process {
 
             context.log("CONSENSUAL_PROCESS: Agent " + agent.getName() + " starting parallel execution for task " + initialTask.getId());
             CompletableFuture<String> agentOutputFuture = agent.performTask(agentSpecificTask, context);
-            
+
             individualExecutionFutures.add(
-                agentOutputFuture.handle((output, ex) -> {
-                    if (ex != null) {
-                        context.log("CONSENSUAL_PROCESS: Agent " + agent.getName() + " failed for task " + initialTask.getId() + ". Error: " + ex.getMessage());
-                        return new AbstractMap.SimpleEntry<>(agent.getName(), "Error: " + ex.getMessage());
-                    }
-                    context.log("CONSENSUAL_PROCESS: Agent " + agent.getName() + " completed task " + initialTask.getId() + ". Output: " + output);
-                    return new AbstractMap.SimpleEntry<>(agent.getName(), output);
-                })
+                    agentOutputFuture.handle((output, ex) -> {
+                        if (ex != null) {
+                            context.log("CONSENSUAL_PROCESS: Agent " + agent.getName() + " failed for task " + initialTask.getId() + ". Error: " + ex.getMessage());
+                            return new AbstractMap.SimpleEntry<>(agent.getName(), "Error: " + ex.getMessage());
+                        }
+                        context.log("CONSENSUAL_PROCESS: Agent " + agent.getName() + " completed task " + initialTask.getId() + ". Output: " + output);
+                        return new AbstractMap.SimpleEntry<>(agent.getName(), output);
+                    })
             );
         }
 
         CompletableFuture<Void> allOfFutures = CompletableFuture.allOf(
-            individualExecutionFutures.toArray(new CompletableFuture[0])
+                individualExecutionFutures.toArray(new CompletableFuture[0])
         );
 
         return allOfFutures.thenComposeAsync(v -> {
-            List<Map.Entry<String, String>> individualResults = individualExecutionFutures.stream()
-                .map(CompletableFuture::join) // .join() is safe here because allOfFutures ensures completion
-                .collect(Collectors.toList());
+                    List<Map.Entry<String, String>> individualResults = individualExecutionFutures.stream()
+                            .map(CompletableFuture::join) // .join() is safe here because allOfFutures ensures completion
+                            .collect(Collectors.toList());
 
-            context.log("CONSENSUAL_PROCESS: All agents completed parallel execution for task " + initialTask.getId());
+                    context.log("CONSENSUAL_PROCESS: All agents completed parallel execution for task " + initialTask.getId());
 
-            // Synthesis Step
-            Agent synthesizerAgent = agents.get(agents.size() - 1); // Last agent is the synthesizer
-            StringBuilder synthesisPromptDetails = new StringBuilder("Synthesize a final answer for the original task based on the following perspectives:\n");
-            for (Map.Entry<String, String> entry : individualResults) {
-                synthesisPromptDetails.append("\n- Agent ").append(entry.getKey()).append(" said: '").append(entry.getValue()).append("'");
-            }
+                    // Synthesis Step
+                    Agent synthesizerAgent = agents.get(agents.size() - 1); // Last agent is the synthesizer
+                    StringBuilder synthesisPromptDetails = new StringBuilder("Synthesize a final answer for the original task based on the following perspectives:\n");
+                    for (Map.Entry<String, String> entry : individualResults) {
+                        synthesisPromptDetails.append("\n- Agent ").append(entry.getKey()).append(" said: '").append(entry.getValue()).append("'");
+                    }
 
-            String synthesisTaskDescription = String.format(
-                "Original Task: %s\n%s",
-                initialTask.getDescription(),
-                synthesisPromptDetails.toString()
-            );
+                    String synthesisTaskDescription = String.format(
+                            "Original Task: %s\n%s",
+                            initialTask.getDescription(),
+                            synthesisPromptDetails.toString()
+                    );
 
                     Task synthesisTask = Task.builder()
                             .description(synthesisTaskDescription)
@@ -102,16 +105,16 @@ public class ConsensualProcess implements Process {
                             .build();
 
                     context.log("CONSENSUAL_PROCESS: Asking synthesizer agent " + synthesizerAgent.getName() + " to synthesize final answer for task " + initialTask.getId());
-            return synthesizerAgent.performTask(synthesisTask, context);
+                    return synthesizerAgent.performTask(synthesisTask, context);
 
-        }, agents.get(0).getMemory() != null ? ((BasicAgent)agents.get(0)).llmExecutor : Runnable::run) // Use an executor from an agent if possible, or a default one
-        .exceptionally(ex -> {
-            context.log("CONSENSUAL_PROCESS: An error occurred during the consensual process for task " + initialTask.getId() + ". Error: " + ex.getMessage());
-            initialTask.setStatus(TaskStatus.FAILED);
-            if (initialTask.getCallback() != null) {
-                initialTask.getCallback().accept(new TaskResult(TaskStatus.FAILED, null, "Consensual process failed: " + ex.getMessage()));
-            }
-            return "Error: Consensual process failed. " + ex.getMessage();
-        });
+                }, agents.get(0).getMemory() != null ? ((BasicAgent) agents.get(0)).llmExecutor : Runnable::run) // Use an executor from an agent if possible, or a default one
+                .exceptionally(ex -> {
+                    context.log("CONSENSUAL_PROCESS: An error occurred during the consensual process for task " + initialTask.getId() + ". Error: " + ex.getMessage());
+                    initialTask.setStatus(TaskStatus.FAILED);
+                    if (initialTask.getCallback() != null) {
+                        initialTask.getCallback().accept(new TaskResult(TaskStatus.FAILED, null, "Consensual process failed: " + ex.getMessage()));
+                    }
+                    return "Error: Consensual process failed. " + ex.getMessage();
+                });
     }
 }

@@ -6,11 +6,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Map;
-import java.util.UUID; // Added for ID
-import java.util.concurrent.CompletableFuture; // Added for HITL
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
 @Builder
 @Data
+/**
+ * Author: Mahesh Awasare 
+ */
 public class Task {
     private final String id = UUID.randomUUID().toString(); // New field for unique ID
     private final String description;
@@ -60,9 +64,9 @@ public class Task {
 */
 
 
-
     /**
      * Sets the human input for the task and attempts to complete the external handle.
+     *
      * @param humanInput The input provided by a human.
      */
     public void setHumanInput(String humanInput) {

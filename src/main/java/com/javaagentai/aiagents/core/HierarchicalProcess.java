@@ -2,29 +2,28 @@ package com.javaagentai.aiagents.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.javaagentai.aiagents.core.Agent;
-import com.javaagentai.aiagents.core.AgentContext;
-import com.javaagentai.aiagents.core.Process;
-import com.javaagentai.aiagents.core.Task;
-import com.javaagentai.aiagents.core.TaskResult;
-import com.javaagentai.aiagents.core.TaskStatus;
 
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+
+/**
+ * This enum represents the different strategies for processing the input data.
+ * ProcessStrategy
+ */
 public class HierarchicalProcess implements Process {
 
     // Helper Records for parsing manager's plan
     // Ensure these are public or accessible if used outside, or keep them private if only internal
-    record SubTaskDetail(String task_description, String assigned_agent_name, String expected_output) {}
-    record ManagerPlan(List<SubTaskDetail> sub_tasks, String manager_notes) {}
+    record SubTaskDetail(String task_description, String assigned_agent_name, String expected_output) {
+    }
+
+    record ManagerPlan(List<SubTaskDetail> sub_tasks, String manager_notes) {
+    }
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,13 +49,13 @@ public class HierarchicalProcess implements Process {
             // The BasicAgent's prompt should ideally detect it has no workers and just solve the task.
             return managerAgent.performTask(initialTask, context);
         }
-        
+
         if (workerAgents.isEmpty() && agents.size() > 1) {
-             context.log("HIERARCHICAL_PROCESS: Manager agent identified, but no worker agents available. Manager will attempt to solve directly.");
-             // This case implies the setup is for hierarchical but workers are missing.
-             // Manager might still be prompted to break down, but won't be able to delegate.
-             // For simplicity, let manager solve it.
-             return managerAgent.performTask(initialTask, context);
+            context.log("HIERARCHICAL_PROCESS: Manager agent identified, but no worker agents available. Manager will attempt to solve directly.");
+            // This case implies the setup is for hierarchical but workers are missing.
+            // Manager might still be prompted to break down, but won't be able to delegate.
+            // For simplicity, let manager solve it.
+            return managerAgent.performTask(initialTask, context);
         }
 
 
@@ -75,7 +74,7 @@ public class HierarchicalProcess implements Process {
                     context.log("HIERARCHICAL_PROCESS: Manager " + managerAgent.getName() + " did not define any sub-tasks. Attempting to get final answer from manager directly based on its output.");
                     // This could be treated as the manager deciding to solve it directly after analysis.
                     // The 'planJson' might actually be the final answer in this case.
-                    return CompletableFuture.completedFuture(planJson); 
+                    return CompletableFuture.completedFuture(planJson);
                 }
             } catch (JsonProcessingException e) {
                 context.log("HIERARCHICAL_PROCESS: Failed to parse manager's plan. Error: " + e.getMessage() + ". Plan JSON: " + planJson);
@@ -107,21 +106,21 @@ public class HierarchicalProcess implements Process {
 
 
                     Task subTask = Task.builder()
-                                    .description(subTaskDetail.task_description())
-                                            .input(initialTask.getInput())
-                                                    .expectedOutput(subTaskDetail.expected_output())
-                                                            .assignedAgent(workerAgent)
-                                                                    .status(TaskStatus.PENDING).build();
+                            .description(subTaskDetail.task_description())
+                            .input(initialTask.getInput())
+                            .expectedOutput(subTaskDetail.expected_output())
+                            .assignedAgent(workerAgent)
+                            .status(TaskStatus.PENDING).build();
                     context.log("HIERARCHICAL_PROCESS: Assigning sub-task '" + subTask.getDescription() + "' to agent " + workerAgent.getName());
                     return workerAgent.performTask(subTask, context)
-                        .thenAccept(result -> {
-                            context.log("HIERARCHICAL_PROCESS: Sub-task '" + subTask.getDescription() + "' completed by " + workerAgent.getName() + ". Output: " + result);
-                            subTaskResults.put(subTask.getDescription(), result);
-                        }).exceptionally(ex -> {
-                            context.log("HIERARCHICAL_PROCESS: Sub-task '" + subTask.getDescription() + "' failed for agent " + workerAgent.getName() + ". Error: " + ex.getMessage());
-                            subTaskResults.put(subTask.getDescription(), "Error: " + ex.getMessage());
-                            return null; // Continue to next sub-task even if one fails
-                        });
+                            .thenAccept(result -> {
+                                context.log("HIERARCHICAL_PROCESS: Sub-task '" + subTask.getDescription() + "' completed by " + workerAgent.getName() + ". Output: " + result);
+                                subTaskResults.put(subTask.getDescription(), result);
+                            }).exceptionally(ex -> {
+                                context.log("HIERARCHICAL_PROCESS: Sub-task '" + subTask.getDescription() + "' failed for agent " + workerAgent.getName() + ". Error: " + ex.getMessage());
+                                subTaskResults.put(subTask.getDescription(), "Error: " + ex.getMessage());
+                                return null; // Continue to next sub-task even if one fails
+                            });
                 });
             }
 
@@ -131,23 +130,22 @@ public class HierarchicalProcess implements Process {
                 StringBuilder synthesisPromptDetails = new StringBuilder("Synthesize the final answer for the original task based on the following sub-task results:\n");
                 for (Map.Entry<String, String> entry : subTaskResults.entrySet()) {
                     synthesisPromptDetails.append("\n- Sub-task: ").append(entry.getKey())
-                                      .append("\n  Result: ").append(entry.getValue());
+                            .append("\n  Result: ").append(entry.getValue());
                 }
                 if (managerPlan.manager_notes() != null && !managerPlan.manager_notes().isEmpty()) {
                     synthesisPromptDetails.append("\n\nManager's initial notes for synthesis: ").append(managerPlan.manager_notes());
                 }
 
                 String synthesisTaskDescription = String.format(
-                    "Original Task: %s\n%s",
-                    initialTask.getDescription(),
-                    synthesisPromptDetails.toString()
+                        "Original Task: %s\n%s",
+                        initialTask.getDescription(),
+                        synthesisPromptDetails.toString()
                 );
-
 
 
                 Task synthesisTask = Task.builder()
                         .description(synthesisTaskDescription)
-                        .input( new HashMap<>())
+                        .input(new HashMap<>())
                         .expectedOutput(initialTask.getExpectedOutput())
                         .assignedAgent(managerAgent)
                         .status(TaskStatus.PENDING).build();

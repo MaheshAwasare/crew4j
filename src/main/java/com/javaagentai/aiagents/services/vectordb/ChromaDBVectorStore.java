@@ -1,22 +1,22 @@
 package com.javaagentai.aiagents.services.vectordb;
 
-import com.javaagentai.aiagents.services.embedding.EmbeddingClient; // For constructor, though not directly used here
+import com.javaagentai.aiagents.services.embedding.EmbeddingClient;
+import tech.amikos.chromadb.ChromaException;
 import tech.amikos.chromadb.Client;
 import tech.amikos.chromadb.Collection;
 import tech.amikos.chromadb.Collection.QueryResponse;
-import tech.amikos.chromadb.ChromaException;
-import tech.amikos.chromadb.embeddings.DefaultEmbeddingFunction; // Placeholder for collection creation
-import tech.amikos.chromadb.handler.ApiException;
-
-
 import tech.amikos.chromadb.Embedding;
+import tech.amikos.chromadb.embeddings.DefaultEmbeddingFunction;
+import tech.amikos.chromadb.handler.ApiException;
 import tech.amikos.chromadb.model.QueryEmbedding;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+/**
+ * Author: Mahesh Awasare
+ */
 public class ChromaDBVectorStore implements VectorStore {
 
     private final Client chromaClient;
@@ -88,7 +88,7 @@ public class ChromaDBVectorStore implements VectorStore {
 
                 // ChromaDB client's upsert method signature:
                 // upsert(ids, embeddings, metadatas, documents)
-                this.chromaCollection.upsert(embeddings, stringMetadataList, textContents,ids);
+                this.chromaCollection.upsert(embeddings, stringMetadataList, textContents, ids);
 
             } catch (ChromaException e) {
                 System.err.println("ChromaDBVectorStore: Error during upsert. " + e.getMessage());
@@ -109,6 +109,7 @@ public class ChromaDBVectorStore implements VectorStore {
                         entry -> entry.getValue() != null ? entry.getValue().toString() : null
                 ));
     }
+
     @Override
     public CompletableFuture<List<Document>> query(List<Double> queryVector, int topK, Map<String, Object> filter) {
         return CompletableFuture.supplyAsync(() -> {
@@ -213,7 +214,7 @@ public class ChromaDBVectorStore implements VectorStore {
                         true, // create_if_not_exists - should be true here
                         new DefaultEmbeddingFunction() // Placeholder EF
                 );
-                 System.out.println("ChromaDBVectorStore: Collection " + this.collectionName + " cleared and recreated.");
+                System.out.println("ChromaDBVectorStore: Collection " + this.collectionName + " cleared and recreated.");
             } catch (ChromaException | ApiException e) {
                 System.err.println("ChromaDBVectorStore: Error during clearAll (delete/create collection). " + e.getMessage());
                 throw new RuntimeException("ChromaDB clearAll failed", e);

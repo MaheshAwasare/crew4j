@@ -1,12 +1,16 @@
 package com.javaagentai.aiagents.config;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+/**
+ * Author: Mahesh Awasare
+ * This is Configuration class
+ */
 public class Config {
 
     private static final Logger LOGGER = Logger.getLogger(Config.class.getName());
@@ -60,7 +64,7 @@ public class Config {
                 return value; // Use the direct config value
             }
         }
-        
+
         // If config value was null, empty, or pointed to an unset ENV var, try the specified envVarName
         if (envVarName != null && !envVarName.isEmpty()) {
             String envValue = System.getenv(envVarName);
@@ -68,7 +72,7 @@ public class Config {
                 return envValue;
             }
         }
-        
+
         return defaultValue;
     }
 
@@ -84,7 +88,7 @@ public class Config {
         String keySuffix = provider.toLowerCase() + ".api.key.env"; // e.g., openai.api.key.env
         String configKey = "llm." + keySuffix; // e.g., llm.openai.api.key.env
         String envVarNameFromConfig = getString(configKey, null); // e.g., OPENAI_API_KEY
-        
+
         // If the config property itself holds the name of the environment variable
         if (envVarNameFromConfig != null && !envVarNameFromConfig.isEmpty()) {
             return getEnvOrConfig(configKey, envVarNameFromConfig, null); // Pass configKey to allow "ENV" override behavior
@@ -139,12 +143,13 @@ public class Config {
     public static int getChromaDbLtmEmbeddingMockDimension() {
         return getInt("memory.chromadbltm.embedding.mock.dimension", getMockEmbeddingDimension()); // Fallback to general mock dimension
     }
-    
+
     // Embedding Configuration
     public static int getMockEmbeddingDimension() {
         return getInt("embedding.mock.dimension", 4); // General default
     }
 
     // Private constructor to prevent instantiation
-    private Config() {}
+    private Config() {
+    }
 }

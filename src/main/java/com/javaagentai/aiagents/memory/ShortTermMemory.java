@@ -3,6 +3,10 @@ package com.javaagentai.aiagents.memory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Author: Mahesh Awasare
+ * Short term memory implementation using a LinkedHashMap to maintain insertion order and allow for LRU eviction if capacity is exceeded
+ */
 public class ShortTermMemory implements Memory {
     private final Map<String, Object> memoryStore;
     private final int capacity; // Optional: to limit memory size
@@ -75,7 +79,7 @@ public class ShortTermMemory implements Memory {
         synchronized (memoryStore) {
             results = memoryStore.entrySet().stream()
                     .filter(entry -> entry.getKey().toLowerCase().contains(lowerCaseQuery) ||
-                                     String.valueOf(entry.getValue()).toLowerCase().contains(lowerCaseQuery))
+                            String.valueOf(entry.getValue()).toLowerCase().contains(lowerCaseQuery))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
         }

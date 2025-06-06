@@ -87,7 +87,7 @@ public abstract class AbstractLongTermMemory implements Memory {
         // The current VectorStore interface doesn't have a direct getById method that returns a single Document's textContent.
         // A query with a filter for the ID could be one way, or extending VectorStore.
         System.err.println("AbstractLongTermMemory: get(key) is not directly supported for semantic entries. " +
-                           "Use search() or ensure keys are document IDs for direct vector store lookup (feature not fully implemented for direct get). Key: " + key);
+                "Use search() or ensure keys are document IDs for direct vector store lookup (feature not fully implemented for direct get). Key: " + key);
         // As a placeholder, one might try to search for it, but it's not a true "get by ID".
         // List<Object> results = search(key, 1); // This would search by content, not ID.
         // if (!results.isEmpty() && results.get(0) instanceof String) {
@@ -115,7 +115,7 @@ public abstract class AbstractLongTermMemory implements Memory {
                 System.err.println("AbstractLongTermMemory: Failed to generate embedding for query: " + query + ". Vector is null or empty.");
                 return Collections.emptyList();
             }
-            
+
             // System.out.println("AbstractLongTermMemory: Searching with query: " + query);
             CompletableFuture<List<Document>> searchResultsFuture = vectorStore.query(queryVector, topK, null); // No filter for now
             List<Document> documents = searchResultsFuture.get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS); // Block here

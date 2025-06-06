@@ -3,7 +3,6 @@ package com.javaagentai.aiagents.core;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,10 +10,15 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Agent context that holds context information for Agent during execution
  */
+
+/**
+ * Author: Mahesh Awasare
+ */
 public class AgentContext {
 
     // Inner record for structured log entries
-    public record LogEntry(LocalDateTime timestamp, String message) {}
+    public record LogEntry(LocalDateTime timestamp, String message) {
+    }
 
     private final Map<String, Object> sharedMemory = new ConcurrentHashMap<>();
     private final List<LogEntry> logHistory = new ArrayList<>();
@@ -37,7 +41,7 @@ public class AgentContext {
      *
      * @param key the key whose associated value is to be returned
      * @return the value to which the specified key is mapped, or
-     *         {@code null} if this map contains no mapping for the key
+     * {@code null} if this map contains no mapping for the key
      */
     public Object retrieveSharedData(String key) {
         return sharedMemory.get(key);
@@ -111,6 +115,7 @@ public class AgentContext {
 
     /**
      * Clears all data from task-scoped memory for a specific task.
+     *
      * @param taskId The identifier of the task whose data is to be cleared.
      */
     public void clearTaskData(String taskId) {

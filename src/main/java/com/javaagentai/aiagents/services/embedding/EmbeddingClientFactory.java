@@ -1,7 +1,10 @@
 package com.javaagentai.aiagents.services.embedding;
 
-import com.javaagentai.aiagents.config.Config; // Import Config
+import com.javaagentai.aiagents.config.Config;
 
+/**
+ * Author: Mahesh Awasare
+ */
 public class EmbeddingClientFactory {
 
     /**
@@ -22,7 +25,7 @@ public class EmbeddingClientFactory {
                 // Use a general mock dimension first, then try specific if available.
                 // This logic could be more sophisticated based on context (e.g., which LTM is being configured).
                 // For now, we'll use the general mock dimension.
-                int dimension = Config.getMockEmbeddingDimension(); 
+                int dimension = Config.getMockEmbeddingDimension();
                 System.out.println("EmbeddingClientFactory: Creating MockEmbeddingClient with dimension: " + dimension);
                 return new MockEmbeddingClient(dimension);
 
@@ -35,7 +38,7 @@ public class EmbeddingClientFactory {
             //     System.out.println("EmbeddingClientFactory: Would create OpenAIEmbeddingClient with model: " + model);
             //     // return new OpenAIEmbeddingClient(apiKey, model); // When implemented
             //     throw new UnsupportedOperationException("OpenAIEmbeddingClient not yet implemented.");
-            
+
             // Add other client types here as they are implemented
             // case "vertexaiembeddingclient":
             //    // ...
@@ -48,14 +51,15 @@ public class EmbeddingClientFactory {
 
     /**
      * Creates an EmbeddingClient for the client type specified for FileBasedLTM in Config.java.
+     *
      * @return An instance of EmbeddingClient.
      */
     public static EmbeddingClient createFileBasedLtmEmbeddingClient() {
         String clientType = Config.getFileBasedLtmEmbeddingClientType();
         if ("MockEmbeddingClient".equalsIgnoreCase(clientType)) {
-             int dimension = Config.getFileBasedLtmEmbeddingMockDimension();
-             System.out.println("EmbeddingClientFactory: Creating MockEmbeddingClient for FileBasedLTM with dimension: " + dimension);
-             return new MockEmbeddingClient(dimension);
+            int dimension = Config.getFileBasedLtmEmbeddingMockDimension();
+            System.out.println("EmbeddingClientFactory: Creating MockEmbeddingClient for FileBasedLTM with dimension: " + dimension);
+            return new MockEmbeddingClient(dimension);
         }
         // Add other types if FileBasedLTM can use them
         return createClient(clientType); // Fallback to general creation
@@ -63,14 +67,15 @@ public class EmbeddingClientFactory {
 
     /**
      * Creates an EmbeddingClient for the client type specified for ChromaDBLTM in Config.java.
+     *
      * @return An instance of EmbeddingClient.
      */
     public static EmbeddingClient createChromaDbLtmEmbeddingClient() {
         String clientType = Config.getChromaDbLtmEmbeddingClientType();
-         if ("MockEmbeddingClient".equalsIgnoreCase(clientType)) {
-             int dimension = Config.getChromaDbLtmEmbeddingMockDimension();
-             System.out.println("EmbeddingClientFactory: Creating MockEmbeddingClient for ChromaDBLTM with dimension: " + dimension);
-             return new MockEmbeddingClient(dimension);
+        if ("MockEmbeddingClient".equalsIgnoreCase(clientType)) {
+            int dimension = Config.getChromaDbLtmEmbeddingMockDimension();
+            System.out.println("EmbeddingClientFactory: Creating MockEmbeddingClient for ChromaDBLTM with dimension: " + dimension);
+            return new MockEmbeddingClient(dimension);
         }
         // Add other types if ChromaDB can use them
         return createClient(clientType); // Fallback to general creation

@@ -6,14 +6,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+
+import static com.javaagentai.aiagents.core.ProcessStrategy.HIERARCHICAL;
+import static com.javaagentai.aiagents.core.ProcessStrategy.SEQUENTIAL;
 
 @Builder
+/**
+ * Author: Mahesh Awasare 
+ */
 public class Crew {
     @Builder.Default
-    private  List<Agent> agents = new ArrayList<>();
-    private  ProcessStrategy processStrategy;
-    private  Process process;
+    private List<Agent> agents = new ArrayList<>();
+    private ProcessStrategy processStrategy;
+    private Process process;
     // No global context here; it's per execution.
 
    /* public Crew(List<Agent> agents, ProcessStrategy strategy) {
@@ -42,20 +47,30 @@ public class Crew {
         Objects.requireNonNull(initialTask, "Initial task cannot be null.");
         AgentContext context = new AgentContext(); // Fresh context for each execution
         context.log("CREW_ASYNC: Starting execution with strategy: " + this.processStrategy + " for task: " + initialTask.getDescription());
+        switch (this.processStrategy) {
+            case SEQUENTIAL:
+                this.process = new SequentialProcess(); // This now returns CompletableFuture
+                break;
+            case HIERARCHICAL:
+                this.process = new HierarchicalProcess(); // Placeholder
+                break;
 
+            default:
+                throw new IllegalArgumentException("Unsupported process strategy: " + this.processStrategy);
+        }
         // The process.execute method now returns a CompletableFuture
         return this.process.execute(initialTask, this.agents, context)
-            .thenApply(finalResult -> {
-                context.log("CREW_ASYNC: Execution finished. Final result: " + finalResult);
-                // Example of accessing logs, could be useful for debugging or post-processing
-                // context.getLogHistory().forEach(logEntry -> System.out.println(logEntry.timestamp() + " [CREW_ASYNC_LOG]: " + logEntry.message()));
-                return finalResult;
-            })
-            .exceptionally(ex -> {
-                context.log("CREW_ASYNC: Execution failed for task: " + initialTask.getDescription() + ". Error: " + ex.getMessage());
-                // Depending on requirements, might rethrow or return an error marker string
-                return "Error during crew execution: " + ex.getMessage();
-            });
+                .thenApply(finalResult -> {
+                    context.log("CREW_ASYNC: Execution finished. Final result: " + finalResult);
+                    // Example of accessing logs, could be useful for debugging or post-processing
+                    // context.getLogHistory().forEach(logEntry -> System.out.println(logEntry.timestamp() + " [CREW_ASYNC_LOG]: " + logEntry.message()));
+                    return finalResult;
+                })
+                .exceptionally(ex -> {
+                    context.log("CREW_ASYNC: Execution failed for task: " + initialTask.getDescription() + ". Error: " + ex.getMessage());
+                    // Depending on requirements, might rethrow or return an error marker string
+                    return "Error during crew execution: " + ex.getMessage();
+                });
     }
 
     public List<Agent> getAgents() {

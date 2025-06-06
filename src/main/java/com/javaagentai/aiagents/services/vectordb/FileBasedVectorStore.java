@@ -6,18 +6,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList; // For thread safety on reads, consider for writes
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+/**
+ * Author: Mahesh Awasare
+ */
 public class FileBasedVectorStore implements VectorStore {
 
     private final String filePath;
@@ -56,9 +52,10 @@ public class FileBasedVectorStore implements VectorStore {
             try {
                 File file = new File(filePath);
                 if (file.exists() && file.length() > 0) { // Check if file is not empty
-                    List<StoredVector> loadedVectors = objectMapper.readValue(file, new TypeReference<List<StoredVector>>() {});
+                    List<StoredVector> loadedVectors = objectMapper.readValue(file, new TypeReference<List<StoredVector>>() {
+                    });
                     // Replace current content with loaded content
-                    this.vectorStore.clear(); 
+                    this.vectorStore.clear();
                     this.vectorStore.addAll(loadedVectors);
                     System.out.println("FileBasedVectorStore: Loaded " + loadedVectors.size() + " vectors from " + filePath);
                 } else {
@@ -113,8 +110,8 @@ public class FileBasedVectorStore implements VectorStore {
     public CompletableFuture<Void> upsert(List<String> ids, List<List<Double>> vectors,
                                           List<Map<String, Object>> metadataList, List<String> textContents) {
         if (ids.size() != vectors.size() ||
-            (metadataList != null && ids.size() != metadataList.size()) ||
-            (textContents != null && ids.size() != textContents.size())) {
+                (metadataList != null && ids.size() != metadataList.size()) ||
+                (textContents != null && ids.size() != textContents.size())) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Input lists must have the same size."));
         }
 
@@ -147,7 +144,7 @@ public class FileBasedVectorStore implements VectorStore {
             // Basic metadata filtering
             if (filter != null && !filter.isEmpty()) {
                 boolean matchesFilter = filter.entrySet().stream()
-                    .allMatch(entry -> entry.getValue().equals(storedVec.metadata().get(entry.getKey())));
+                        .allMatch(entry -> entry.getValue().equals(storedVec.metadata().get(entry.getKey())));
                 if (!matchesFilter) {
                     continue; // Skip if filter doesn't match
                 }
@@ -169,7 +166,8 @@ public class FileBasedVectorStore implements VectorStore {
     }
 
     // Helper record for sorting with scores
-    private record StoredVectorWithScore(StoredVector storedVector, double score) {}
+    private record StoredVectorWithScore(StoredVector storedVector, double score) {
+    }
 
 
     @Override

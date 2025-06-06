@@ -4,14 +4,18 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts; // Import for standard fonts
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
-import java.io.IOException; // Import IOException
+import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Author: Mahesh Awasare
+ * <p>
+ * PDFWriter tool
+ */
 public class PdfWriterTool implements Tool {
 
     @Override
@@ -23,7 +27,6 @@ public class PdfWriterTool implements Tool {
     public String getDescription() {
         return "A tool to create a PDF document. It now properly handles text with newlines.";
     }
-
 
 
     @Override

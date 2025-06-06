@@ -199,7 +199,10 @@ elif set_java_home; then
   javaSource="$TMP_DOWNLOAD_DIR/Downloader.java"
   targetZip="$TMP_DOWNLOAD_DIR/$distributionUrlName"
   cat >"$javaSource" <<-END
-	public class Downloader extends java.net.Authenticator
+	/**
+ * Author: Mahesh Awasare
+ */
+public class Downloader extends java.net.Authenticator
 	{
 	  protected java.net.PasswordAuthentication getPasswordAuthentication()
 	  {

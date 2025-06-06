@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Author: Mahesh Awasare
+ * <p>
  * Placeholder interface for Long-Term Memory.
  * Actual long-term memory would involve vector databases or other persistent stores.
  * For now, it can have a basic in-memory version or log messages.

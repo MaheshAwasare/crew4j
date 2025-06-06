@@ -11,6 +11,10 @@ import java.util.stream.DoubleStream;
  * Mock implementation of EmbeddingClient for testing and development.
  * Generates simple, deterministic, or random vectors based on input text.
  */
+
+/**
+ * Author: Mahesh Awasare
+ */
 public class MockEmbeddingClient implements EmbeddingClient {
 
     private final int dimension;
@@ -49,7 +53,7 @@ public class MockEmbeddingClient implements EmbeddingClient {
                 vector.add(random.nextDouble() * 100); // Scaled random number
             }
         }
-        
+
         // Ensure vector is of the correct dimension, padding with 0.0 or truncating if necessary
         // This loop handles cases where initial logic produces fewer than `dimension` elements
         while (vector.size() < dimension) {
@@ -66,9 +70,9 @@ public class MockEmbeddingClient implements EmbeddingClient {
 
     private List<Double> generateRandomVector() {
         return DoubleStream.generate(() -> random.nextDouble() * 100)
-                           .limit(dimension)
-                           .boxed()
-                           .collect(Collectors.toList());
+                .limit(dimension)
+                .boxed()
+                .collect(Collectors.toList());
     }
 
     @Override

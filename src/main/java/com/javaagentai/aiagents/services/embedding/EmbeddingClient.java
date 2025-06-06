@@ -21,7 +21,7 @@ public interface EmbeddingClient {
      *
      * @param texts The list of texts to embed.
      * @return A CompletableFuture containing a list of lists of doubles, where each inner list
-     *         is an embedding for the corresponding text in the input list.
+     * is an embedding for the corresponding text in the input list.
      */
     CompletableFuture<List<List<Double>>> embed(List<String> texts);
 }

@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * SequentialProcess is a Process implementation that executes tasks sequentially using CompletableFuture.
+ * Author: Mahesh Awasare
+ */
 public class SequentialProcess implements Process {
 
     @Override
@@ -42,52 +46,40 @@ public class SequentialProcess implements Process {
                 context.storeTaskData(taskId, agent.getName() + "_input", currentTask.getInput());
 
                 return agent.performTask(currentTask, context)
-                    .thenApply(output -> {
-                        // currentTask.setStatus(TaskStatus.COMPLETED); // Set by agent.performTask
-                        context.storeTaskData(taskId, agent.getName() + "_output", output);
-                        context.log("SEQUENTIAL_PROCESS_ASYNC: Agent " + agent.getName() + " finished task. Output: " + output);
+                        .thenApply(output -> {
+                            // currentTask.setStatus(TaskStatus.COMPLETED); // Set by agent.performTask
+                            context.storeTaskData(taskId, agent.getName() + "_output", output);
+                            context.log("SEQUENTIAL_PROCESS_ASYNC: Agent " + agent.getName() + " finished task. Output: " + output);
 
-                        // The callback is now handled within agent.performTask's success path
-                         if (currentTask.getCallback() != null) {
-                           TaskResult result = new TaskResult(TaskStatus.COMPLETED, output);
-                          currentTask.getCallback().accept(result);
-                       }
+                            // The callback is now handled within agent.performTask's success path
+                            if (currentTask.getCallback() != null) {
+                                TaskResult result = new TaskResult(TaskStatus.COMPLETED, output);
+                                currentTask.getCallback().accept(result);
+                            }
 
-                        // Prepare the next task. The output of the current task becomes the description of the next.
-                        // The last agent's output is the final result, so no new task is created after the last agent.
-                        // This check needs to be smarter if we are inside a loop of agents.
-                        // For now, we assume this loop is the main sequence.
-                        // The creation of the next task should only happen if this isn't the last agent.
-                        // This logic will be handled by returning the output string and the loop outside.
-                        return Task.builder()
-                                .description(output)
-                                .input(Map.copyOf(context.getSharedMemory()))
-                                .expectedOutput(currentTask.getExpectedOutput())
-                                .status(TaskStatus.PENDING)
-                                .callback(currentTask.getCallback())
-                                .build();
 
-                    })
-                    .exceptionally(ex -> {
-                        context.log("SEQUENTIAL_PROCESS_ASYNC: Agent " + agent.getName() + " failed task: " + currentTask.getDescription() + ". Error: " + ex.getMessage());
-                        // currentTask.setStatus(TaskStatus.FAILED); // Set by agent.performTask
-                        // The callback is now handled within agent.performTask's exceptional path
-                        // if (currentTask.getCallback() != null) {
-                        //    currentTask.getCallback().accept(new TaskResult(TaskStatus.FAILED, null, ex.getMessage()));
-                        // }
-                        // Propagate a null task or a special marker to skip subsequent agents.
-                        // Or rethrow to stop the chain: throw new RuntimeException(ex);
-                        return null; // Returning null to indicate failure to the next step in chain
-                    });
+                            return Task.builder()
+                                    .description(output)
+                                    .input(Map.copyOf(context.getSharedMemory()))
+                                    .expectedOutput(currentTask.getExpectedOutput())
+                                    .status(TaskStatus.PENDING)
+                                    .callback(currentTask.getCallback())
+                                    .build();
+
+                        })
+                        .exceptionally(ex -> {
+                            context.log("SEQUENTIAL_PROCESS_ASYNC: Agent " + agent.getName() + " failed task: " + currentTask.getDescription() + ". Error: " + ex.getMessage());
+
+                            return null; // Returning null to indicate failure to the next step in chain
+                        });
             });
         }
 
-        // After the loop, the taskChain holds a CompletableFuture for the last created Task object.
-        // We need its description (which is the output of the last agent that successfully ran).
+
         return taskChain.thenApply(lastTask -> {
             if (lastTask == null || lastTask.getStatus() == TaskStatus.FAILED) {
-                 context.log("SEQUENTIAL_PROCESS_ASYNC: Process finished with failure or no result from the last agent.");
-                 return "Error: Process failed or produced no result.";
+                context.log("SEQUENTIAL_PROCESS_ASYNC: Process finished with failure or no result from the last agent.");
+                return "Error: Process failed or produced no result.";
             }
             // The 'description' of this 'lastTask' object is the output of the *actual* last agent.
             String finalOutput = lastTask.getDescription();

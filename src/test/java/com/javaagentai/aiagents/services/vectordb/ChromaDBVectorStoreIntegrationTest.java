@@ -20,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // Can use PER_METHOD if preferred, adjust setup/teardown
+/** 
+ * Author: Mahesh Awasare 
+ */
 public class ChromaDBVectorStoreIntegrationTest {
 
     private static final String CHROMA_URL = System.getProperty("CHROMA_URL", "http://localhost:8000");

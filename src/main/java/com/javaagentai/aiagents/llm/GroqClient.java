@@ -9,6 +9,9 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Author: Mahesh Awasare
+ */
 public class GroqClient implements LLMClient {
 
     private final String apiKey;

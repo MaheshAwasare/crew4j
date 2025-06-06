@@ -3,6 +3,10 @@ package com.javaagentai.aiagents.core;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+
+/**
+ * Author: Mahesh Awasare
+ */
 public interface Process {
     /**
      * Executes the orchestration logic for tasks among agents asynchronously.

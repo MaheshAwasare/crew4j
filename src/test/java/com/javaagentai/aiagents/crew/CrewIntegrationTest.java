@@ -16,15 +16,15 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputFilter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Author: Mahesh Awasare 
+ */
 public class CrewIntegrationTest {
 
     private Crew crew;
@@ -53,6 +53,7 @@ public class CrewIntegrationTest {
         Agent researcher = BasicAgent.builder()
                 .role("Research")
                 .name("Researcher")
+                .tools(Collections.emptyList())
                 .llmClient(groqClient)
                 .memory(memory)
                 .build();
@@ -67,6 +68,7 @@ public class CrewIntegrationTest {
                 .role("Writing")
                 .llmClient(groqClient)
                 .memory(memory)
+                .tools(List.of(new PdfWriterTool()))
                 .build();
         agents.add(writer);
 
@@ -81,12 +83,14 @@ public class CrewIntegrationTest {
         Task task = Task.builder()
                 .description("Summarize AI applications in a short article")
                 .input(input)
+
                 .expectedOutput("A short article on AI applications")
                 .build();
 
 
         // Create a crew
-        crew = Crew.builder().agents(agents).processStrategy(strategy).build();
+
+        crew = Crew.builder().agents(agents).processStrategy(ProcessStrategy.SEQUENTIAL).build();
 
 
         // Execute the task
