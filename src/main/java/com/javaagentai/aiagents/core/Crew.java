@@ -1,14 +1,19 @@
 package com.javaagentai.aiagents.core;
 
+import lombok.Builder;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
+@Builder
 public class Crew {
-    private final List<Agent> agents;
-    private final ProcessStrategy processStrategy;
-    private final Process process;
+    @Builder.Default
+    private  List<Agent> agents = new ArrayList<>();
+    private  ProcessStrategy processStrategy;
+    private  Process process;
     // No global context here; it's per execution.
 
     public Crew(List<Agent> agents, ProcessStrategy strategy) {

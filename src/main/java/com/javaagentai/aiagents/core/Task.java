@@ -1,10 +1,12 @@
 package com.javaagentai.aiagents.core;
 
+import lombok.Builder;
+
 import java.util.Map;
 import java.util.UUID; // Added for ID
 import java.util.concurrent.CompletableFuture; // Added for HITL
 import java.util.function.Consumer;
-
+@Builder
 public class Task {
     private final String id = UUID.randomUUID().toString(); // New field for unique ID
     private final String description;
