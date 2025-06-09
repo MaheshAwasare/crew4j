@@ -71,7 +71,7 @@ Add the following dependency to your `pom.xml`:
 <dependency>
     <groupId>com.crew4j</groupId>
     <artifactId>jcrew</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
@@ -256,7 +256,7 @@ Memory allows agents to store and retrieve information across interactions, main
 Agent agent = BasicAgent.builder()
     .role("Assistant")
     .llmClient(llmClient)
-    .withMemory(new ShortTermMemory())
+    .memory(new ShortTermMemory())
     .build();
 
 // Agent stores information in memory
